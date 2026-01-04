@@ -1,0 +1,96 @@
+<header class="header">
+  <!-- Background overlay for the header -->
+  <div class="header-background"></div>
+  
+  <div class="header-content">
+    <!-- Left section: Title block -->
+    <div class="header-left">
+      <button class="mobile-menu-toggle" (click)="onToggleSidebar()">
+        <app-menu-icon></app-menu-icon>
+      </button>
+      <div class="title-block">
+        <h1 class="page-title">Cooperative Dashboard</h1>
+        <p class="page-subtitle">
+          Welcome back! Here's what's happening with your cooperative today.
+        </p>
+      </div>
+    </div>
+    
+    <!-- Right section: Actions -->
+    <div class="header-right">
+      <!-- Search bar -->
+      <div class="search-box" (keyup.enter)="onSearch()">
+        <app-search-icon></app-search-icon>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery"
+          placeholder="Search members, production, transactions...">
+      </div>
+      
+      <!-- Action icons -->
+      <div class="action-icons">
+        <!-- Messages dropdown -->
+        <div class="dropdown message-dropdown">
+          <button class="header-icon" title="Messages">
+            <app-mail-icon></app-mail-icon>
+            <span class="notification-badge" *ngIf="unreadMessages > 0"></span>
+          </button>
+          <div class="dropdown-content">
+            <div class="dropdown-header">
+              <h3>Messages</h3>
+              <button class="mark-all-read" (click)="markAllMessagesAsRead()">Mark all read</button>
+            </div>
+            <div class="message-list">
+              <div *ngFor="let message of messages" 
+                   class="message-item" 
+                   [class.unread]="!message.read">
+                <div class="message-content">
+                  <div class="message-title">{{message.title}}</div>
+                  <div class="message-preview">{{message.preview}}</div>
+                  <div class="message-time">{{message.time}}</div>
+                </div>
+              </div>
+              <div *ngIf="messages.length === 0" class="empty-state">
+                No messages
+              </div>
+            </div>
+            <a routerLink="/messages" class="dropdown-footer">View all messages</a>
+          </div>
+        </div>
+        
+        <!-- Notifications dropdown -->
+        <div class="dropdown notification-dropdown">
+          <button class="header-icon" title="Notifications">
+            <app-bell-icon></app-bell-icon>
+            <span class="notification-badge" *ngIf="unreadNotifications > 0"></span>
+          </button>
+          <div class="dropdown-content">
+            <div class="dropdown-header">
+              <h3>Notifications</h3>
+              <button class="mark-all-read" (click)="markAllNotificationsAsRead()">Mark all read</button>
+            </div>
+            <div class="notification-list">
+              <div *ngFor="let notification of notifications" 
+                   class="notification-item" 
+                   [class.unread]="!notification.read">
+                <div class="notification-content">
+                  <div class="notification-title">{{notification.title}}</div>
+                  <div class="notification-time">{{notification.time}}</div>
+                </div>
+              </div>
+              <div *ngIf="notifications.length === 0" class="empty-state">
+                No notifications
+              </div>
+            </div>
+            <a routerLink="/notifications" class="dropdown-footer">View all notifications</a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- User profile (optional - can be hidden or shown based on design) -->
+      <div class="user-profile" *ngIf="false">
+        <!-- Optional user profile area -->
+      </div>
+    </div>
+  </div>
+</header>

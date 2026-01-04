@@ -1,0 +1,308 @@
+<!-- src/app/features/dashboard/dashboard.html -->
+<div class="dashboard">
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <!-- Total Farmers -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon primary">
+          <app-users-icon></app-users-icon>
+        </div>
+        <div class="stat-trend positive">+12%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Farmers</h3>
+        <div class="value">{{dashboardStats?.totalFarmers || 0}}</div>
+        <div class="stat-change positive">
+          <app-trending-up-icon></app-trending-up-icon>
+          <span>From last month</span>
+        </div>
+      </div>
+    </div>  
+
+    <!-- Total Production -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon warning">
+          <app-pallet-icon></app-pallet-icon>
+        </div>
+        <div class="stat-trend positive">+15%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Production</h3>
+        <div class="value">{{dashboardStats?.totalProduction?.toLocaleString() || 0}} kg</div>
+        <div class="stat-change positive">
+          <app-trending-up-icon></app-trending-up-icon>
+          <span>Current season</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock Level -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon danger">
+          <app-package-icon></app-package-icon>
+        </div>
+        <div class="stat-trend positive">+5%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Stock Level</h3>
+        <div class="value">{{dashboardStats?.stockLevel?.toLocaleString() || 0}} kg</div>
+        <div class="stat-change positive">
+          <app-trending-up-icon></app-trending-up-icon>
+          <span>From last week</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outstanding Credits -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon primary">
+          <app-credit-icon></app-credit-icon>
+        </div>
+        <div class="stat-trend negative">-5.2%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Outstanding Credits</h3>
+        <div class="value">{{formatNumber(dashboardStats?.outstandingCredits || 0)}}</div>
+        <div class="stat-change negative">
+          <app-trending-down-icon></app-trending-down-icon>
+          <span>From last month</span>
+        </div>
+      </div>
+    </div> 
+ 
+  </div>
+
+  <!-- Production Chart & Recent Activity -->
+  <div class="content-grid">
+    <!-- Production Chart -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h2 class="card-title">Production Trends</h2>
+        <div class="card-actions">
+          <button class="btn btn-outline">
+            <app-clock-icon></app-clock-icon>
+            <span>Last 6 Months</span>
+          </button>
+        </div>
+      </div>
+      <div class="card-body scrollable-content">
+        <div class="chart-container">
+          <canvas id="productionChart"></canvas>
+        </div>
+        <div class="chart-footer">
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #2d5016;"></span>
+              <span class="legend-label">Maize</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #4a7c2a;"></span>
+              <span class="legend-label">Cassava</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card activity-card">
+      <div class="card-header">
+        <h2 class="card-title">Recent Activities</h2>
+        <div class="card-actions">
+          <button class="btn btn-outline">View All</button>
+        </div>
+      </div>
+      <div class="card-body scrollable-content">
+        <div class="activity-list-container">
+          <div *ngIf="isLoading.activities" class="loading-state">
+            <div class="loading-spinner"></div>
+            <span>Loading activities...</span>
+          </div>
+          
+          <div *ngIf="!isLoading.activities && hasError.activities" class="error-state">
+            <app-alert-icon></app-alert-icon>
+            <p>Failed to load activities</p>
+            <button class="btn btn-outline" (click)="retryLoadData('activities')">Retry</button>
+          </div>
+          
+          <div *ngIf="!isLoading.activities && !hasError.activities && recentActivities.length === 0" class="empty-state">
+            <app-clock-icon></app-clock-icon>
+            <p>No recent activities</p>
+          </div>
+          
+          <div *ngIf="!isLoading.activities && !hasError.activities && recentActivities.length > 0" class="activity-list">
+            <div *ngFor="let activity of recentActivities" 
+                 class="activity-item"
+                 [class]="'activity-' + activity.type">
+              <div class="activity-icon">
+                <ng-container [ngSwitch]="getActivityIcon(activity.type)">
+                  <app-users-icon *ngSwitchCase="'users-icon'"></app-users-icon>
+                  <app-pallet-icon *ngSwitchCase="'pallet-icon'"></app-pallet-icon>
+                  <app-sales-icon *ngSwitchCase="'sales-icon'"></app-sales-icon>
+                  <app-alert-icon *ngSwitchCase="'alert-icon'"></app-alert-icon>
+                  <app-credit-icon *ngSwitchCase="'credit-icon'"></app-credit-icon>
+                  <app-clock-icon *ngSwitchDefault></app-clock-icon>
+                </ng-container>
+              </div>
+              <div class="activity-content">
+                <div class="activity-title">{{activity.title}}</div>
+                <div class="activity-desc">{{activity.description}}</div>
+                <div *ngIf="activity.farmerName" class="activity-farmer">
+                  {{activity.farmerName}}
+                </div>
+              </div>
+              <div class="activity-time">{{activity.time}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="charts-grid">
+    <!-- Crop Distribution -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h2 class="card-title">Crop Distribution</h2>
+      </div>
+      <div class="card-body scrollable-content">
+        <div class="chart-container">
+          <canvas id="cropChart"></canvas>
+        </div>
+        <div class="distribution-details">
+          <div *ngFor="let crop of cropDistribution" class="crop-item">
+            <div class="crop-name">{{crop.crop}}</div>
+            <div class="crop-percentage">{{crop.percentage}}%</div>
+            <div class="crop-amount">{{crop.amount.toLocaleString()}} kg</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Regional Performance -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h2 class="card-title">Regional Performance</h2>
+      </div>
+      <div class="card-body scrollable-content">
+        <div class="chart-container">
+          <canvas id="regionalChart"></canvas>
+        </div>
+        <div class="performance-details">
+          <div *ngFor="let region of regionalPerformance" class="region-item">
+            <div class="region-name">{{region.region}}</div>
+            <div class="region-performance">
+              <div class="performance-bar" [style.width.%]="region.performance"></div>
+            </div>
+            <div class="region-stats">
+              <span>{{region.production.toLocaleString()}} kg</span>
+              <span>{{region.farmers}} farmers</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions & Alerts -->
+  <div class="content-grid">
+    <!-- Quick Actions -->
+    <div class="card quick-actions-card">
+      <div class="card-header">
+        <h2 class="card-title">Quick Actions</h2>
+      </div>
+      <div class="card-body scrollable-content">
+        <div *ngIf="isLoading.quickActions" class="loading-state">
+          <div class="loading-spinner"></div>
+          <span>Loading quick actions...</span>
+        </div>
+        
+        <div *ngIf="!isLoading.quickActions && hasError.quickActions" class="error-state">
+          <app-alert-icon></app-alert-icon>
+          <p>Failed to load quick actions</p>
+          <button class="btn btn-outline" (click)="retryLoadData('quickActions')">Retry</button>
+        </div>
+        
+        <div *ngIf="!isLoading.quickActions && !hasError.quickActions && quickActions.length === 0" class="empty-state">
+          <app-plus-icon></app-plus-icon>
+          <p>No quick actions available</p>
+        </div>
+        
+        <div *ngIf="!isLoading.quickActions && !hasError.quickActions && quickActions.length > 0" class="quick-actions">
+          <a *ngFor="let action of quickActions" 
+             [routerLink]="action.route" 
+             class="action-btn"
+             [class]="'action-' + action.color">
+            <ng-container [ngSwitch]="action.icon">
+              <app-users-icon *ngSwitchCase="'users-icon'"></app-users-icon>
+              <app-pallet-icon *ngSwitchCase="'pallet-icon'"></app-pallet-icon>
+              <app-communication-icon *ngSwitchCase="'communication-icon'"></app-communication-icon>
+              <app-sales-icon *ngSwitchCase="'sales-icon'"></app-sales-icon>
+              <app-credit-icon *ngSwitchCase="'credit-icon'"></app-credit-icon>
+              <app-plant-icon *ngSwitchCase="'plant-icon'"></app-plant-icon>
+              <app-plus-icon *ngSwitchDefault></app-plus-icon>
+            </ng-container>
+            <div class="action-label">{{action.title}}</div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="card alerts-card">
+      <div class="card-header">
+        <h2 class="card-title">Alerts & Notifications</h2>
+        <div class="card-actions">
+          <button class="btn btn-outline">Mark All Read</button>
+        </div>
+      </div>
+      <div class="card-body scrollable-content">
+        <div class="alert-list-container">
+          <div *ngIf="isLoading.alerts" class="loading-state">
+            <div class="loading-spinner"></div>
+            <span>Loading alerts...</span>
+          </div>
+          
+          <div *ngIf="!isLoading.alerts && hasError.alerts" class="error-state">
+            <app-alert-icon></app-alert-icon>
+            <p>Failed to load alerts</p>
+            <button class="btn btn-outline" (click)="retryLoadData('alerts')">Retry</button>
+          </div>
+          
+          <div *ngIf="!isLoading.alerts && !hasError.alerts && alerts.length === 0" class="empty-state">
+            <app-check-circle-icon></app-check-circle-icon>
+            <p>No alerts at the moment</p>
+          </div>
+          
+          <div *ngIf="!isLoading.alerts && !hasError.alerts && alerts.length > 0" class="alert-list">
+            <div *ngFor="let alert of alerts" 
+                 class="alert-item"
+                 [class]="'alert-' + getSeverityColor(alert.severity)">
+              <div class="alert-icon">
+                <ng-container [ngSwitch]="getAlertIcon(alert.type)">
+                  <app-alert-icon *ngSwitchCase="'alert-icon'"></app-alert-icon>
+                  <app-clock-icon *ngSwitchCase="'clock-icon'"></app-clock-icon>
+                  <app-plant-icon *ngSwitchCase="'plant-icon'"></app-plant-icon>
+                  <app-check-circle-icon *ngSwitchCase="'check-circle-icon'"></app-check-circle-icon>
+                </ng-container>
+              </div>
+              <div class="alert-content">
+                <h4>{{alert.title}}</h4>
+                <p>{{alert.message}}</p>
+                <div *ngIf="alert.product" class="alert-product">
+                  <strong>Product:</strong> {{alert.product}}
+                </div>
+              </div>
+              <div class="alert-time">{{alert.time}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

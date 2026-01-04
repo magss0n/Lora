@@ -1,1 +1,76 @@
-/* You can add global styles to this file, and also import other style files */
+/* Reset all default margins and padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Global Variables */
+:root {
+  --primary: #2d5016;
+  --primary-light: #4a7c2a;
+  --primary-dark: #1a3009;
+  --secondary: #e9b949;
+  --secondary-light: #f5d887;
+  --secondary-dark: #d4a22a;
+  --accent: #8db596;
+  --accent-light: #b8d4c0;
+  --accent-dark: #6a9977;
+  --success: #3a7d34;
+  --warning: #e6a700;
+  --danger: #c44536;
+  --info: #3d7ea6;
+  --text-dark: #1a1f16;
+  --text-light: #5a6c5d;
+  --bg-light: #f8fbf5;
+  --card-bg: #ffffff;
+  --card-border: #e1e8d9;
+  --card-shadow: 0 6px 15px rgba(45, 80, 22, 0.08);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg-light);
+  color: var(--text-dark);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+ 
+/* Card styles that complement the header */
+.dashboard-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(45, 80, 22, 0.08);
+  border: 1px solid #e1e8d9;
+  overflow: hidden;
+  margin-top: -24px;  
+  position: relative;
+  z-index: 1;
+}
+
+/* Smooth scrolling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+
+  &:hover {
+    background: #94a3b8;
+  }
+}

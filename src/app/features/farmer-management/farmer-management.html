@@ -1,0 +1,1218 @@
+<div class="farmer-management">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <!-- Total Farmers -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon primary">
+          <app-users-icon></app-users-icon>
+        </div>
+        <div class="stat-trend positive">+8%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Farmers</h3>
+        <div class="value">{{stats.total || 0}}</div>
+        <div class="stat-change positive">
+          <span>From last month</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Farmers -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon success">
+          <app-check-circle-icon></app-check-circle-icon>
+        </div>
+        <div class="stat-trend positive">+5%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Active Farmers</h3>
+        <div class="value">{{stats.active || 0}}</div>
+        <div class="stat-change positive">
+          <span>{{(stats.active / stats.total * 100).toFixed(1)}}% active</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Farm Size -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon warning">
+          <app-pallet-icon></app-pallet-icon>
+        </div>
+        <div class="stat-trend positive">+12%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Farm Size</h3>
+        <div class="value">{{(stats.totalFarmSize || 0).toFixed(1)}} ha</div>
+        <div class="stat-change positive">
+          <span>Average: {{(stats.totalFarmSize / stats.total || 0).toFixed(1)}} ha</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Organic Certified -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon accent">
+          <app-plant-icon></app-plant-icon>
+        </div>
+        <div class="stat-trend positive">+15%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Organic Certified</h3>
+        <div class="value">{{stats.organicCertified || 0}}</div>
+        <div class="stat-change positive">
+          <span>{{(stats.organicCertified / stats.total * 100).toFixed(1)}}% of total</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">Farmer Directory</h2>
+      
+      <!-- Actions Toolbar -->
+      <div class="action-toolbar">
+        <!-- Search -->
+        <div class="search-box">
+          <app-search-icon></app-search-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (keyup.enter)="onSearch()"
+            placeholder="Search by name, phone, farm name..."
+          >
+          <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()">
+            <app-x-circle-icon></app-x-circle-icon>
+          </button>
+        </div>
+
+        <!-- Filter Button -->
+        <button class="btn btn-outline" (click)="showFiltersModal = true">
+          <app-filter-icon></app-filter-icon>
+          <span>Filter</span>
+        </button>
+
+        <!-- Primary Actions -->
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <app-add-farmer-icon></app-add-farmer-icon>
+          <span>Add Farmer</span>
+        </button>
+
+        <!-- Import/Export -->
+        <div class="dropdown">
+          <button class="btn btn-outline">
+            <app-export-icon></app-export-icon>
+            <span>Bulk Actions</span>
+          </button>
+          <div class="dropdown-menu">
+            <button class="dropdown-item" (click)="openImportModal()">
+              <app-import-icon></app-import-icon>
+              <span>Import Farmers</span>
+            </button>
+            <button class="dropdown-item" (click)="openExportModal()">
+              <app-export-icon></app-export-icon>
+              <span>Export Farmers</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Farmers Table -->
+    <div class="table-container">
+      <table class="farmers-table">
+        <thead>
+          <tr>
+            <th>Farmer</th>
+            <th>Contact</th>
+            <th>Farm Details</th>
+            <th>Membership</th>
+            <th>Financial</th>
+            <th>Production</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let farmer of filteredFarmers" class="farmer-row">
+            <!-- Farmer Info -->
+            <td class="farmer-info">
+              <div class="farmer-avatar">
+                {{farmer.firstName.charAt(0)}}{{farmer.lastName.charAt(0)}}
+              </div>
+              <div class="farmer-details">
+                <div class="farmer-name">{{farmer.firstName}} {{farmer.lastName}}</div>
+                <div class="farmer-id">{{farmer.registrationNumber}}</div>
+                <div class="farmer-gender">{{farmer.gender | titlecase}}</div>
+              </div>
+            </td>
+
+            <!-- Contact -->
+            <td class="contact-info">
+              <div class="contact-item">
+                <strong>Phone:</strong> {{farmer.phoneNumber}}
+              </div>
+              <div *ngIf="farmer.email" class="contact-item">
+                <strong>Email:</strong> {{farmer.email}}
+              </div>
+              <div class="contact-item">
+                <strong>Location:</strong> {{farmer.address.city}}, {{farmer.address.state}}
+              </div>
+            </td>
+
+            <!-- Farm Details -->
+            <td class="farm-info">
+              <div class="farm-name">{{farmer.farmDetails.farmName}}</div>
+              <div class="farm-stats">
+                <span class="farm-size">{{farmer.farmDetails.farmSize}} ha</span>
+                <span class="farm-experience">{{farmer.farmDetails.farmingExperience}} yrs</span>
+                <span *ngIf="farmer.farmDetails.organicCertified" class="organic-badge">Organic</span>
+              </div>
+              <div class="farm-crops">
+                {{getCropsDisplay(farmer.farmDetails.cropsGrown)}}
+              </div>
+            </td>
+
+            <!-- Membership -->
+            <td class="membership-info">
+              <div class="membership-status">
+                <span class="status-badge" [class]="getStatusClass(farmer.membership.status)">
+                  {{farmer.membership.status | titlecase}}
+                </span>
+              </div>
+              <div class="membership-type">
+                <span class="type-badge" [class]="getMembershipClass(farmer.membership.membershipType)">
+                  {{farmer.membership.membershipType | titlecase}}
+                </span>
+              </div>
+              <div class="membership-date">
+                Joined: {{formatDate(farmer.membership.joinDate)}}
+              </div>
+            </td>
+
+            <!-- Financial -->
+            <td class="financial-info">
+              <div class="financial-item">
+                <strong>Credit:</strong> ₦{{farmer.financial.totalCredit | number}}
+              </div>
+              <div class="financial-item">
+                <strong>Balance:</strong> ₦{{farmer.financial.outstandingBalance | number}}
+              </div>
+              <div class="financial-item">
+                <strong>Score:</strong> 
+                <span class="credit-score" [class]="getCreditScoreClass(farmer.financial.creditScore)">
+                  {{farmer.financial.creditScore}}
+                </span>
+              </div>
+            </td>
+
+            <!-- Production -->
+            <td class="production-info">
+              <div class="production-item">
+                <strong>Deliveries:</strong> {{farmer.production.totalDeliveries}}
+              </div>
+              <div class="production-item">
+                <strong>Weight:</strong> {{farmer.production.totalWeight | number}} kg
+              </div>
+              <div class="production-item">
+                <strong>Quality:</strong> 
+                <span class="quality-rating">
+                  {{farmer.production.averageQuality}}/5
+                </span>
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button class="action-btn view-btn" (click)="openViewModal(farmer)" title="View Details">
+                  <app-view-farmer-icon></app-view-farmer-icon>
+                </button>
+                <button class="action-btn edit-btn" (click)="openEditModal(farmer)" title="Edit">
+                  <app-edit-farmer-icon></app-edit-farmer-icon>
+                </button>
+                <button class="action-btn qr-btn" (click)="viewQRCode(farmer)" title="QR Code">
+                  <app-qr-icon></app-qr-icon>
+                </button>
+                <button class="action-btn delete-btn" (click)="openDeleteModal(farmer)" title="Delete">
+                  <app-delete-farmer-icon></app-delete-farmer-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredFarmers.length === 0" class="empty-state">
+        <app-users-icon></app-users-icon>
+        <p>No farmers found</p>
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <app-add-farmer-icon></app-add-farmer-icon>
+          <span>Add Your First Farmer</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        Previous
+      </button>
+      
+      <div class="page-numbers">
+        <button *ngFor="let page of getPageNumbers()" 
+                class="page-number" 
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)">
+          {{page}}
+        </button>
+      </div>
+      
+      <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        Next
+      </button>
+      
+      <div class="page-info">
+        Showing {{(currentPage - 1) * itemsPerPage + 1}}-{{getEndIndex()}} of {{totalItems}}
+    </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  
+<!-- Add Farmer Modal -->
+<div *ngIf="showAddModal" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Add New Farmer</h3>
+      <button class="modal-close" (click)="closeModal()">
+        <app-x-circle-icon></app-x-circle-icon>
+      </button>
+    </div>
+    
+    <form [formGroup]="farmerForm" (ngSubmit)="addFarmer()">
+      <div class="modal-body">
+        <!-- Personal Information -->
+        <div class="form-section">
+          <h4>Personal Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name *</label>
+              <input type="text" formControlName="firstName" placeholder="Enter first name">
+              <div *ngIf="farmerForm.get('firstName')?.invalid && farmerForm.get('firstName')?.touched" class="error">
+                First name is required
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Last Name *</label>
+              <input type="text" formControlName="lastName" placeholder="Enter last name">
+              <div *ngIf="farmerForm.get('lastName')?.invalid && farmerForm.get('lastName')?.touched" class="error">
+                Last name is required
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Phone Number *</label>
+              <input type="tel" formControlName="phoneNumber" placeholder="+2348012345678">
+              <div *ngIf="farmerForm.get('phoneNumber')?.invalid && farmerForm.get('phoneNumber')?.touched" class="error">
+                Valid phone number required
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" formControlName="email" placeholder="farmer@email.com">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Gender *</label>
+              <select formControlName="gender">
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date of Birth</label>
+              <input type="date" formControlName="dateOfBirth">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Identification Number</label>
+            <input type="text" formControlName="identificationNumber" placeholder="National ID/BVN">
+          </div>
+        </div>
+        
+        <!-- Address Information -->
+        <div class="form-section">
+          <h4>Address Information</h4>
+          <div class="form-group">
+            <label>Street Address *</label>
+            <input type="text" formControlName="address.street" placeholder="Enter street address">
+            <div *ngIf="farmerForm.get('address.street')?.invalid && farmerForm.get('address.street')?.touched" class="error">
+              Street address is required
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>City/Town *</label>
+              <input type="text" formControlName="address.city" placeholder="City/Town">
+              <div *ngIf="farmerForm.get('address.city')?.invalid && farmerForm.get('address.city')?.touched" class="error">
+                City is required
+              </div>
+            </div>
+            <div class="form-group">
+              <label>State *</label>
+              <select formControlName="address.state">
+                <option value="">Select State</option>
+                <option value="Lagos">Lagos</option>
+                <option value="Abuja">Abuja</option>
+                <option value="Kano">Kano</option>
+                <option value="Rivers">Rivers</option>
+                <option value="Enugu">Enugu</option>
+                <option value="Oyo">Oyo</option>
+                <option value="Kaduna">Kaduna</option>
+                <option value="Delta">Delta</option>
+                <option value="Ogun">Ogun</option>
+                <option value="Ondo">Ondo</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Country *</label>
+              <input type="text" formControlName="address.country" value="Nigeria" readonly>
+            </div>
+            <div class="form-group">
+              <label>Postal Code</label>
+              <input type="text" formControlName="address.postalCode" placeholder="Postal Code">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Farm Details -->
+        <div class="form-section">
+          <h4>Farm Details</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Farm Name *</label>
+              <input type="text" formControlName="farmDetails.farmName" placeholder="Enter farm name">
+              <div *ngIf="farmerForm.get('farmDetails.farmName')?.invalid && farmerForm.get('farmDetails.farmName')?.touched" class="error">
+                Farm name is required
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Farm Size (hectares) *</label>
+              <input type="number" formControlName="farmDetails.farmSize" placeholder="0.0" step="0.1" min="0">
+              <div *ngIf="farmerForm.get('farmDetails.farmSize')?.invalid && farmerForm.get('farmDetails.farmSize')?.touched" class="error">
+                Valid farm size required
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Farm Location/Address *</label>
+            <textarea formControlName="farmDetails.farmLocation" placeholder="Enter farm location address" rows="2"></textarea>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Farming Experience (years)</label>
+              <input type="number" formControlName="farmDetails.farmingExperience" placeholder="0" min="0" max="70">
+            </div>
+            <div class="form-group">
+              <label>Primary Crop</label>
+              <select formControlName="farmDetails.primaryCrop">
+                <option value="">Select Crop</option>
+                <option value="Maize">Maize</option>
+                <option value="Rice">Rice</option>
+                <option value="Cassava">Cassava</option>
+                <option value="Yam">Yam</option>
+                <option value="Wheat">Wheat</option>
+                <option value="Sorghum">Sorghum</option>
+                <option value="Millet">Millet</option>
+                <option value="Soybeans">Soybeans</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Fruits">Fruits</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Crops Grown (select multiple)</label>
+            <div class="checkbox-group multi-checkbox">
+              <label *ngFor="let crop of availableCrops">
+                <input type="checkbox" [value]="crop" (change)="onCropChange($event, crop)">
+                {{crop}}
+              </label>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input type="checkbox" formControlName="farmDetails.organicCertified" id="organic">
+                <label for="organic">Organic Certified</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input type="checkbox" formControlName="farmDetails.hasIrrigation" id="irrigation">
+                <label for="irrigation">Has Irrigation</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Membership Information -->
+        <div class="form-section">
+          <h4>Membership Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Status *</label>
+              <select formControlName="membership.status">
+                <option value="">Select Status</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="inactive">Inactive</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Membership Type *</label>
+              <select formControlName="membership.membershipType">
+                <option value="">Select Type</option>
+                <option value="regular">Regular</option>
+                <option value="premium">Premium</option>
+                <option value="associate">Associate</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Join Date</label>
+            <input type="date" formControlName="membership.joinDate" [max]="today">
+          </div>
+          
+          <div class="form-group">
+            <label>Comments/Notes</label>
+            <textarea formControlName="membership.notes" placeholder="Any additional notes..." rows="2"></textarea>
+          </div>
+        </div>
+        
+        <!-- Bank Details -->
+        <div class="form-section">
+          <h4>Bank Details</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Bank Name</label>
+              <select formControlName="bankDetails.bankName">
+                <option value="">Select Bank</option>
+                <option value="First Bank">First Bank</option>
+                <option value="UBA">UBA</option>
+                <option value="Zenith Bank">Zenith Bank</option>
+                <option value="GTBank">GTBank</option>
+                <option value="Access Bank">Access Bank</option>
+                <option value="FCMB">FCMB</option>
+                <option value="Union Bank">Union Bank</option>
+                <option value="Stanbic IBTC">Stanbic IBTC</option>
+                <option value="Fidelity Bank">Fidelity Bank</option>
+                <option value="Heritage Bank">Heritage Bank</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Account Number</label>
+              <input type="text" formControlName="bankDetails.accountNumber" placeholder="Account Number">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Account Name</label>
+            <input type="text" formControlName="bankDetails.accountName" placeholder="Account Holder Name">
+          </div>
+          
+          <div class="form-group">
+            <label>BVN (Bank Verification Number)</label>
+            <input type="text" formControlName="bankDetails.bvn" placeholder="11-digit BVN" maxlength="11">
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+           Add Farmer 
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  <!-- View Farmer Modal --> 
+<div *ngIf="showViewModal && selectedFarmer" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content view-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Farmer Details</h3>
+      <button class="modal-close" (click)="closeModal()">
+        <app-x-circle-icon></app-x-circle-icon>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Farmer Profile Header -->
+      <div class="farmer-profile-header">
+        <div class="farmer-avatar large">
+          {{selectedFarmer.firstName.charAt(0)}}{{selectedFarmer.lastName.charAt(0)}}
+        </div>
+        <div class="farmer-profile-info">
+          <h2>{{selectedFarmer.firstName}} {{selectedFarmer.lastName}}</h2>
+          <div class="farmer-id">{{selectedFarmer.registrationNumber}}</div>
+          <div class="farmer-status">
+            <span class="status-badge" [class]="getStatusClass(selectedFarmer.membership.status)">
+              {{selectedFarmer.membership.status | titlecase}}
+            </span>
+            <span class="membership-badge" [class]="getMembershipClass(selectedFarmer.membership.membershipType)">
+              {{selectedFarmer.membership.membershipType | titlecase}}
+            </span>
+          </div>
+          <div class="farmer-contact">
+            <span class="contact-item">
+              <app-phone-icon></app-phone-icon>
+              {{selectedFarmer.phoneNumber}}
+            </span>
+            <span *ngIf="selectedFarmer.email" class="contact-item">
+              <app-mail-icon></app-mail-icon>
+              {{selectedFarmer.email}}
+            </span>
+          </div>
+        </div>
+        <div class="farmer-qr">
+          <div class="qr-container">
+            <div class="qr-code-placeholder">
+              <app-qr-icon></app-qr-icon>
+            </div>
+            <div class="qr-text">Scan for details</div>
+          </div>
+          <button class="btn btn-outline" (click)="downloadQRCode(selectedFarmer)">
+            <app-download-icon></app-download-icon>
+            <span>Download QR</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="profile-tabs">
+        <div class="tab" [class.active]="activeTab === 'personal'" (click)="activeTab = 'personal'">Personal Info</div>
+        <div class="tab" [class.active]="activeTab === 'farm'" (click)="activeTab = 'farm'">Farm Details</div>
+        <div class="tab" [class.active]="activeTab === 'financial'" (click)="activeTab = 'financial'">Financial</div>
+        <div class="tab" [class.active]="activeTab === 'production'" (click)="activeTab = 'production'">Production</div>
+        <div class="tab" [class.active]="activeTab === 'documents'" (click)="activeTab = 'documents'">Documents</div>
+      </div>
+
+      <!-- Tab Contents -->
+      <div class="tab-content" *ngIf="activeTab === 'personal'">
+        <div class="info-grid">
+          <div class="info-section">
+            <h4>Personal Information</h4>
+            <div class="info-item">
+              <strong>Full Name:</strong> {{selectedFarmer.firstName}} {{selectedFarmer.lastName}}
+            </div>
+            <div class="info-item">
+              <strong>Gender:</strong> {{selectedFarmer.gender | titlecase}}
+            </div>
+            <div class="info-item" *ngIf="selectedFarmer.dateOfBirth">
+              <strong>Date of Birth:</strong> {{formatDate(selectedFarmer.dateOfBirth)}}
+            </div>
+            <div class="info-item">
+              <strong>Age:</strong> {{calculateAge(selectedFarmer.dateOfBirth)}} years
+            </div>
+            <div class="info-item">
+              <strong>Registration Number:</strong> {{selectedFarmer.registrationNumber}}
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h4>Contact Information</h4>
+            <div class="info-item">
+              <strong>Phone:</strong> {{selectedFarmer.phoneNumber}}
+            </div>
+            <div class="info-item" *ngIf="selectedFarmer.email">
+              <strong>Email:</strong> {{selectedFarmer.email}}
+            </div>
+            <div class="info-item">
+              <strong>Address:</strong> {{selectedFarmer.address.street}}
+            </div>
+            <div class="info-item">
+              <strong>City/Town:</strong> {{selectedFarmer.address.city}}
+            </div>
+            <div class="info-item">
+              <strong>State:</strong> {{selectedFarmer.address.state}}
+            </div>
+            <div class="info-item">
+              <strong>Country:</strong> {{selectedFarmer.address.country}}
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h4>Membership Details</h4>
+            <div class="info-item">
+              <strong>Join Date:</strong> {{formatDate(selectedFarmer.membership.joinDate)}}
+            </div>
+            <div class="info-item">
+              <strong>Membership Duration:</strong> {{getMembershipDuration(selectedFarmer.membership.joinDate)}}
+            </div>
+            <div class="info-item">
+              <strong>Status:</strong> 
+              <span class="status-badge" [class]="getStatusClass(selectedFarmer.membership.status)">
+                {{selectedFarmer.membership.status | titlecase}}
+              </span>
+            </div>
+            <div class="info-item">
+              <strong>Type:</strong> 
+              <span class="membership-badge" [class]="getMembershipClass(selectedFarmer.membership.membershipType)">
+                {{selectedFarmer.membership.membershipType | titlecase}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Farm Details Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'farm'">
+        <div class="info-grid">
+          <div class="info-section">
+            <h4>Farm Information</h4>
+            <div class="info-item">
+              <strong>Farm Name:</strong> {{selectedFarmer.farmDetails.farmName}}
+            </div>
+            <div class="info-item">
+              <strong>Farm Size:</strong> {{selectedFarmer.farmDetails.farmSize}} hectares
+            </div>
+            <div class="info-item">
+              <strong>Farm Location:</strong> {{selectedFarmer.farmDetails.farmLocation}}
+            </div>
+            <div class="info-item">
+              <strong>Farming Experience:</strong> {{selectedFarmer.farmDetails.farmingExperience}} years
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h4>Crops & Production</h4>
+            <div class="info-item">
+              <strong>Crops Grown:</strong>
+              <div class="crop-tags">
+                <span *ngFor="let crop of selectedFarmer.farmDetails.cropsGrown" class="crop-tag">
+                  {{crop}}
+                </span>
+              </div>
+            </div>
+            <div class="info-item">
+              <strong>Certifications:</strong>
+              <div class="certification-tags">
+                <span *ngIf="selectedFarmer.farmDetails.organicCertified" class="cert-tag organic">
+                  Organic Certified
+                </span>
+                <span *ngIf="selectedFarmer.farmDetails.hasIrrigation" class="cert-tag irrigation">
+  Irrigation System
+</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h4>Location</h4>
+            <div class="map-placeholder">
+              <div class="map-icon">
+                <app-map-pin-icon></app-map-pin-icon>
+              </div>
+              <div class="map-details">
+                <strong>Coordinates:</strong>
+                <div *ngIf="selectedFarmer.address.coordinates">
+                  Lat: {{selectedFarmer.address.coordinates.lat}}, Lng: {{selectedFarmer.address.coordinates.lng}}
+                </div>
+                <div *ngIf="!selectedFarmer.address.coordinates">
+                  Coordinates not available
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'financial'">
+        <div class="info-grid">
+          <div class="info-section">
+            <h4>Financial Summary</h4>
+            <div class="info-item financial-summary">
+              <strong>Total Credit:</strong> 
+              <span class="amount">₦{{selectedFarmer.financial.totalCredit | number}}</span>
+            </div>
+            <div class="info-item financial-summary">
+              <strong>Total Repaid:</strong> 
+              <span class="amount repaid">₦{{selectedFarmer.financial.totalRepaid | number}}</span>
+            </div>
+            <div class="info-item financial-summary">
+              <strong>Outstanding Balance:</strong> 
+              <span class="amount balance">₦{{selectedFarmer.financial.outstandingBalance | number}}</span>
+            </div>
+            <div class="info-item">
+              <strong>Credit Score:</strong> 
+              <span class="credit-score" [class]="getCreditScoreClass(selectedFarmer.financial.creditScore)">
+                {{selectedFarmer.financial.creditScore}}/100
+              </span>
+            </div>
+            <div class="info-item" *ngIf="selectedFarmer.financial.lastPaymentDate">
+              <strong>Last Payment:</strong> {{formatDate(selectedFarmer.financial.lastPaymentDate)}}
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h4>Bank Details</h4>
+<div *ngIf="selectedFarmer.bankDetails?.bankName" class="info-item">
+  <strong>Bank Name:</strong> {{selectedFarmer.bankDetails!.bankName}}
+</div>
+<div *ngIf="selectedFarmer.bankDetails?.accountNumber" class="info-item">
+  <strong>Account Number:</strong> {{selectedFarmer.bankDetails!.accountNumber}}
+</div>
+<div *ngIf="selectedFarmer.bankDetails?.accountName" class="info-item">
+  <strong>Account Name:</strong> {{selectedFarmer.bankDetails!.accountName}}
+</div>
+<div *ngIf="selectedFarmer.bankDetails?.bvn" class="info-item">
+  <strong>BVN:</strong> {{selectedFarmer.bankDetails!.bvn}}
+</div>
+          </div>
+
+          <div class="info-section">
+            <h4>Payment History</h4>
+            <div class="payment-history">
+              <div class="payment-item" *ngFor="let payment of getPaymentHistory(selectedFarmer)">
+                <div class="payment-date">{{payment.date}}</div>
+                <div class="payment-amount">₦{{payment.amount | number}}</div>
+                <div class="payment-status" [class]="payment.status">{{payment.status}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Production Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'production'">
+        <div class="info-grid">
+          <div class="info-section">
+            <h4>Production Summary</h4>
+            <div class="info-item">
+              <strong>Total Deliveries:</strong> {{selectedFarmer.production.totalDeliveries}}
+            </div>
+            <div class="info-item">
+              <strong>Total Weight:</strong> {{selectedFarmer.production.totalWeight | number}} kg
+            </div>
+            <div class="info-item">
+              <strong>Average Quality Score:</strong> 
+              <span class="quality-rating">
+                {{selectedFarmer.production.averageQuality}}/5
+              </span>
+            </div>
+            <div class="info-item" *ngIf="selectedFarmer.production.lastDeliveryDate">
+              <strong>Last Delivery:</strong> {{formatDate(selectedFarmer.production.lastDeliveryDate)}}
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h4>Crop Performance</h4>
+            <div class="crop-performance">
+              <div class="crop-performance-item" *ngFor="let crop of selectedFarmer.farmDetails.cropsGrown">
+                <div class="crop-name">{{crop}}</div>
+                <div class="crop-stats">
+                  <span class="stat">Yield: {{getRandomYield()}} kg/ha</span>
+                  <span class="stat">Grade: {{getRandomGrade()}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h4>Recent Deliveries</h4>
+            <div class="deliveries-list">
+              <div class="delivery-item" *ngFor="let delivery of getRecentDeliveries(selectedFarmer)">
+                <div class="delivery-date">{{delivery.date}}</div>
+                <div class="delivery-details">
+                  <span class="crop">{{delivery.crop}}</span>
+                  <span class="weight">{{delivery.weight}} kg</span>
+                  <span class="quality" [class]="'quality-' + delivery.quality">{{delivery.quality}}/5</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'documents'">
+        <div class="info-grid">
+          <div class="info-section full-width">
+            <h4>Uploaded Documents</h4>
+            <div class="documents-grid">
+              <div class="document-card" *ngFor="let doc of getFarmerDocuments(selectedFarmer)">
+                <div class="document-icon">
+                  <app-file-icon></app-file-icon>
+                </div>
+                <div class="document-info">
+                  <div class="document-name">{{doc.name}}</div>
+                  <div class="document-type">{{doc.type}}</div>
+                  <div class="document-date">Uploaded: {{doc.uploadDate}}</div>
+                </div>
+                <div class="document-actions">
+                  <button class="btn btn-text" (click)="viewDocument(doc)">
+                    <app-view-farmer-icon></app-view-farmer-icon>
+                    View
+                  </button>
+                  <button class="btn btn-text" (click)="downloadDocument(doc)">
+                    <app-download-icon></app-download-icon>
+                    Download
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="no-documents" *ngIf="getFarmerDocuments(selectedFarmer).length === 0">
+              <app-file-icon></app-file-icon>
+              <p>No documents uploaded yet</p>
+              <button class="btn btn-outline" (click)="uploadDocument(selectedFarmer)">
+                <app-upload-icon></app-upload-icon>
+                Upload Document
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="printFarmerDetails(selectedFarmer)">
+        <app-export-icon></app-export-icon>
+        <span>Print Details</span>
+      </button>
+      <button class="btn btn-outline" (click)="openEditModal(selectedFarmer)">
+        <app-edit-farmer-icon></app-edit-farmer-icon>
+        <span>Edit Farmer</span>
+      </button>
+      <button class="btn btn-primary" (click)="generateReport(selectedFarmer)">
+        <app-download-icon></app-download-icon>
+        <span>Generate Report</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteModal && selectedFarmer" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Deletion</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="warning-icon">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <h4>Are you sure you want to delete this farmer?</h4>
+        <p>This will mark <strong>{{selectedFarmer.firstName}} {{selectedFarmer.lastName}}</strong> as inactive.</p>
+        <p class="warning-text">This action cannot be undone. All associated data will be archived.</p>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="deleteFarmer()" >
+            Delete Farmer  
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div *ngIf="showImportModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content import-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Bulk Import Farmers</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="import-instructions">
+          <h4>Instructions:</h4>
+          <ul>
+            <li>Download the template file for correct formatting</li>
+            <li>Fill in required fields: First Name, Last Name, Phone Number</li>
+            <li>Save file as CSV or Excel format</li>
+            <li>Maximum file size: 10MB</li>
+          </ul>
+          <button class="btn btn-outline" (click)="downloadTemplate()">
+            <app-download-icon></app-download-icon>
+            <span>Download Template</span>
+          </button>
+        </div>
+
+        <div class="file-upload-area" [class.dragover]="isDragover" 
+             (dragover)="onDragOver($event)" 
+             (dragleave)="onDragLeave($event)"
+             (drop)="onDrop($event)">
+          <input type="file" id="importFile" accept=".csv,.xlsx,.xls" 
+                 (change)="onFileSelected($event)" hidden>
+          
+          <div class="upload-icon">
+            <app-upload-icon></app-upload-icon>
+          </div>
+          
+          <p>Drag & drop your file here or</p>
+          <label for="importFile" class="btn btn-outline">
+            <app-file-icon></app-file-icon>
+            <span>Browse Files</span>
+          </label>
+          
+          <p class="file-types">Supported formats: CSV, Excel</p>
+        </div>
+
+        <div *ngIf="importFile" class="selected-file">
+          <div class="file-info">
+            <app-file-icon></app-file-icon>
+            <div>
+              <strong>{{importFile.name}}</strong>
+              <div class="file-size">Size: {{importFile.size / 1024 / 1024 | number:'1.1-1'}} MB</div>
+            </div>
+          </div>
+          <button class="btn btn-text" (click)="importFile = null">
+            <app-x-circle-icon></app-x-circle-icon>
+          </button>
+        </div>
+
+        <!-- Import Progress -->
+        <div *ngIf="isImporting" class="import-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="importProgress"></div>
+          </div>
+          <div class="progress-text">{{importProgress}}% complete</div>
+        </div>
+
+        <!-- Import Results -->
+        <div *ngIf="importResult" class="import-results">
+          <h4>Import Results</h4>
+          <div class="result-stats">
+            <div class="result-stat success">
+              <strong>{{importResult.success}}</strong>
+              <span>Successful</span>
+            </div>
+            <div class="result-stat failed">
+              <strong>{{importResult.failed}}</strong>
+              <span>Failed</span>
+            </div>
+            <div class="result-stat total">
+              <strong>{{importResult.total}}</strong>
+              <span>Total</span>
+            </div>
+          </div>
+
+          <div *ngIf="importResult.errors.length > 0" class="import-errors">
+            <h5>Errors:</h5>
+            <div class="error-list">
+              <div *ngFor="let error of importResult.errors" class="error-item">
+                <span class="error-row">Row {{error.row}}:</span>
+                <span class="error-message">{{error.error}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" 
+                (click)="importFarmers()" 
+                [disabled]="!importFile || isImporting">
+          {{isImporting ? 'Importing...' : 'Start Import'}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div *ngIf="showExportModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content export-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Export Farmers</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="export-options">
+          <h4>Export Format</h4>
+          <div class="format-options">
+            <label class="format-option" [class.active]="exportFormat === 'excel'">
+              <input type="radio" name="exportFormat" [(ngModel)]="exportFormat" value="excel">
+              <div class="format-icon">
+                <app-file-icon></app-file-icon>
+              </div>
+              <div class="format-info">
+                <strong>Excel (.xlsx)</strong>
+                <span>Best for data analysis</span>
+              </div>
+            </label>
+            
+            <label class="format-option" [class.active]="exportFormat === 'pdf'">
+              <input type="radio" name="exportFormat" [(ngModel)]="exportFormat" value="pdf">
+              <div class="format-icon">
+                <app-file-icon></app-file-icon>
+              </div>
+              <div class="format-info">
+                <strong>PDF (.pdf)</strong>
+                <span>Best for reports</span>
+              </div>
+            </label>
+            
+            <label class="format-option" [class.active]="exportFormat === 'csv'">
+              <input type="radio" name="exportFormat" [(ngModel)]="exportFormat" value="csv">
+              <div class="format-icon">
+                <app-file-icon></app-file-icon>
+              </div>
+              <div class="format-info">
+                <strong>CSV (.csv)</strong>
+                <span>Best for data exchange</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="export-filters">
+          <h4>Export Options</h4>
+          <div class="filter-options">
+            <label class="checkbox-option">
+              <input type="checkbox" [(ngModel)]="includeInactive">
+              <span>Include inactive farmers</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" [(ngModel)]="includeFinancial">
+              <span>Include financial data</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" [(ngModel)]="includeProduction">
+              <span>Include production data</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" 
+                (click)="exportFarmers()" 
+                [disabled]="isExporting">
+          {{isExporting ? 'Exporting...' : 'Export Farmers'}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Modal -->
+  <div *ngIf="showFiltersModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content filters-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Filter Farmers</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="filter-group">
+          <h4>Status</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="all">
+              <span>All Status</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="active">
+              <span class="status-badge status-active">Active</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="inactive">
+              <span class="status-badge status-inactive">Inactive</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="suspended">
+              <span class="status-badge status-suspended">Suspended</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="pending">
+              <span class="status-badge status-pending">Pending</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Membership Type</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="membership" [(ngModel)]="membershipFilter" value="all">
+              <span>All Types</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="membership" [(ngModel)]="membershipFilter" value="regular">
+              <span class="membership-badge membership-regular">Regular</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="membership" [(ngModel)]="membershipFilter" value="premium">
+              <span class="membership-badge membership-premium">Premium</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="membership" [(ngModel)]="membershipFilter" value="associate">
+              <span class="membership-badge membership-associate">Associate</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Farm Size</h4>
+          <div class="range-inputs">
+            <input type="number" [(ngModel)]="filters.minFarmSize" placeholder="Min (ha)" min="0">
+            <span>to</span>
+            <input type="number" [(ngModel)]="filters.maxFarmSize" placeholder="Max (ha)" min="0">
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Location</h4>
+          <input type="text" [(ngModel)]="filters.city" placeholder="City name...">
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">
+          Clear All
+        </button>
+        <button type="button" class="btn btn-primary" (click)="applyFilters()">
+          Apply Filters
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

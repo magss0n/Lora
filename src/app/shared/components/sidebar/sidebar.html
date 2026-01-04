@@ -1,0 +1,50 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <app-logo-icon></app-logo-icon>
+      <span class="logo-text">Lora</span>
+    </div>
+  </div>
+  
+  <nav class="sidebar-nav">
+    <ng-container *ngFor="let section of sections">
+      <div class="nav-section" *ngIf="getItemsBySection(section).length > 0">
+        <div class="nav-title">{{section}}</div>
+        
+        <a *ngFor="let item of getItemsBySection(section)" 
+           [routerLink]="item.route" 
+           routerLinkActive="active"
+           class="nav-item"
+           (click)="onCloseSidebar()">
+          <span class="nav-icon">
+            <!-- Use ngSwitch with getIconSelector method -->
+            <ng-container [ngSwitch]="getIconSelector(item.icon)">
+              <app-dashboard-icon *ngSwitchCase="'dashboard-icon'"></app-dashboard-icon>
+              <app-users-icon *ngSwitchCase="'users-icon'"></app-users-icon>
+              <app-pallet-icon *ngSwitchCase="'pallet-icon'"></app-pallet-icon>
+              <app-plant-icon *ngSwitchCase="'plant-icon'"></app-plant-icon>
+              <app-credit-icon *ngSwitchCase="'credit-icon'"></app-credit-icon>
+              <app-sales-icon *ngSwitchCase="'sales-icon'"></app-sales-icon>
+              <app-contract-icon *ngSwitchCase="'contract-icon'"></app-contract-icon>
+              <app-communication-icon *ngSwitchCase="'communication-icon'"></app-communication-icon>
+              <app-reports-icon *ngSwitchCase="'reports-icon'"></app-reports-icon>
+              <app-settings-icon *ngSwitchCase="'settings-icon'"></app-settings-icon>
+            </ng-container>
+          </span>
+          <span class="nav-label">{{item.title}}</span>
+          <span class="badge" *ngIf="item.badge">{{item.badge}}</span>
+        </a>
+      </div>
+    </ng-container>
+  </nav>
+  
+  <div class="sidebar-footer">
+    <div class="user-profile">
+      <div class="user-avatar">MG</div>
+      <div class="user-info">
+        <div class="user-name">Moutcheu Gift</div>
+        <div class="user-role">Cooperative Manager</div>
+      </div>
+    </div>
+  </div>
+</aside>
