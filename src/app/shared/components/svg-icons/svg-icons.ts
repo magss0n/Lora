@@ -1063,6 +1063,175 @@ export class FilterContractIcon {}
 })
 export class StatusIcon {}
  
+
+// Custom icons for communication
+@Component({
+  selector: 'app-announcement-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      <circle cx="12" cy="8" r="2"></circle>
+    </svg>
+  `
+})
+export class AnnouncementIcon {}
+  
+@Component({
+  selector: 'app-needs-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path>
+      <line x1="16" y1="8" x2="2" y2="22"></line>
+      <line x1="17.5" y1="15" x2="9" y2="15"></line>
+    </svg>
+  `
+})
+export class NeedsIcon {}
+
+@Component({
+  selector: 'app-audio-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    </svg>
+  `
+})
+export class AudioIcon {}
+
+@Component({
+  selector: 'app-send-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13"></line>
+      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+    </svg>
+  `
+})
+export class SendIcon {}
+ 
+
+@Component({
+  selector: 'app-megaphone-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 11v3"></path>
+      <path d="M5 11h14l1 7H4l1-7Z"></path>
+      <path d="M9 11a5 5 0 0 1 6 0"></path>
+      <path d="M9 11V7a3 3 0 0 1 6 0v4"></path>
+    </svg>
+  `
+})
+export class MegaphoneIcon {}
+ 
+@Component({
+  selector: 'app-play-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+    </svg>
+  `
+})
+export class PlayIcon {}
+
+@Component({
+  selector: 'app-duplicate-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+  `
+})
+export class DuplicateIcon {}
+
+@Component({
+  selector: 'app-supplier-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+      <circle cx="9" cy="7" r="4"></circle>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      <path d="M18 19v-6"></path>
+      <path d="M21 16l-3 3-3-3"></path>
+    </svg>
+  `
+})
+export class SupplierIcon {}
+
+@Component({
+  selector: 'app-add-communication-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      <line x1="12" y1="8" x2="12" y2="16"></line>
+      <line x1="8" y1="12" x2="16" y2="12"></line>
+    </svg>
+  `
+})
+export class AddCommunicationIcon {}
+ 
+@Component({
+  selector: 'app-mic-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+      <line x1="12" y1="19" x2="12" y2="23"></line>
+      <line x1="8" y1="23" x2="16" y2="23"></line>
+    </svg>
+  `
+})
+export class MicIcon {}
+
+@Component({
+  selector: 'app-pause-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="6" y="4" width="4" height="16"></rect>
+      <rect x="14" y="4" width="4" height="16"></rect>
+    </svg>
+  `
+})
+export class PauseIcon {}
+
+@Component({
+  selector: 'app-stop-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+    </svg>
+  `
+})
+export class StopIcon {}
+
+@Component({
+  selector: 'app-text-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 7V4h16v3"></path>
+      <path d="M9 20h6"></path>
+      <path d="M12 4v16"></path>
+    </svg>
+  `
+})
+export class TextIcon {}
+
 // Export all icons
 export const SVG_ICONS = [
   DashboardIcon,
@@ -1145,4 +1314,17 @@ export const SVG_ICONS = [
   SignatureIcon,
   FilterContractIcon,
   StatusIcon,
+  AnnouncementIcon,
+  NeedsIcon,
+  AudioIcon,
+  SendIcon,
+  MegaphoneIcon,
+  PlayIcon,
+  DuplicateIcon,
+  SupplierIcon,
+  AddCommunicationIcon,
+  MicIcon,
+  PauseIcon,
+  StopIcon,
+  TextIcon
 ];

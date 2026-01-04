@@ -1,1 +1,1340 @@
-<p>communication works!</p>
+<!-- src/app/features/communication/communication.component.html -->
+<div class="communication">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <!-- Total Announcements -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon primary">
+          <app-megaphone-icon></app-megaphone-icon>
+        </div>
+        <div class="stat-trend positive">+12%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Announcements</h3>
+        <div class="value">{{stats.totalAnnouncements || 0}}</div>
+        <div class="stat-change positive">
+          <span>{{stats.sentAnnouncements || 0}} sent this month</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scheduled Announcements -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon warning">
+          <app-calendar-icon></app-calendar-icon>
+        </div>
+        <div class="stat-trend positive">+8%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Scheduled</h3>
+        <div class="value">{{stats.scheduledAnnouncements || 0}}</div>
+        <div class="stat-change positive">
+          <span>{{(stats.scheduledAnnouncements / stats.totalAnnouncements * 100).toFixed(1) || 0}}% of total</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Read Rate -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon success">
+          <app-chart-icon></app-chart-icon>
+        </div>
+        <div class="stat-trend positive">+5%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Read Rate</h3>
+        <div class="value">{{stats.readRate || 0}}%</div>
+        <div class="stat-change positive">
+          <span>From last month</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Open Needs -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon accent">
+          <app-needs-icon></app-needs-icon>
+        </div>
+        <div class="stat-trend positive">+15%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Open Needs</h3>
+        <div class="value">{{stats.openNeeds || 0}}</div>
+        <div class="stat-change positive">
+          <span>{{stats.responseRate || 0}}% response rate</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="content-card">
+    <!-- Tab Navigation -->
+    <div class="card-header">
+      <div class="tabs-navigation">
+        <button class="tab-btn" [class.active]="activeTab === 'announcements'" (click)="setTab('announcements')">
+          <app-megaphone-icon></app-megaphone-icon>
+          <span>Announcements</span>
+          <span class="badge">{{announcements.length}}</span>
+        </button>
+        
+        <button class="tab-btn" [class.active]="activeTab === 'templates'" (click)="setTab('templates')">
+          <app-template-icon></app-template-icon>
+          <span>Templates</span>
+          <span class="badge">{{templates.length}}</span>
+        </button>
+        
+        <button class="tab-btn" [class.active]="activeTab === 'needs'" (click)="setTab('needs')">
+          <app-needs-icon></app-needs-icon>
+          <span>Needs Publication</span>
+          <span class="badge">{{needs.length}}</span>
+        </button>
+      </div>
+      
+      <!-- Actions Toolbar -->
+      <div class="action-toolbar">
+        <!-- Search -->
+        <div class="search-box">
+          <app-search-icon></app-search-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (keyup.enter)="onSearch()"
+            placeholder="Search announcements, templates, needs..."
+          >
+          <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()">
+            <app-x-circle-icon></app-x-circle-icon>
+          </button>
+        </div>
+
+        <!-- Filter Button -->
+        <button class="btn btn-outline" (click)="showFiltersModal = true">
+          <app-filter-icon></app-filter-icon>
+          <span>Filter</span>
+        </button>
+
+        <!-- Primary Actions based on active tab -->
+        <ng-container [ngSwitch]="activeTab">
+          <ng-container *ngSwitchCase="'announcements'">
+            <button class="btn btn-primary" (click)="openCreateAnnouncement()">
+              <app-add-communication-icon></app-add-communication-icon>
+              <span>New Announcement</span>
+            </button>
+          </ng-container>
+          
+          <ng-container *ngSwitchCase="'templates'">
+            <button class="btn btn-primary" (click)="openCreateTemplate()">
+              <app-template-icon></app-template-icon>
+              <span>New Template</span>
+            </button>
+          </ng-container>
+          
+          <ng-container *ngSwitchCase="'needs'">
+            <button class="btn btn-primary" (click)="openCreateNeed()">
+              <app-add-farmer-icon></app-add-farmer-icon>
+              <span>Post Need</span>
+            </button>
+          </ng-container>
+        </ng-container>
+
+        <!-- Import/Export -->
+        <div class="dropdown">
+          <button class="btn btn-outline">
+            <app-export-icon></app-export-icon>
+            <span>Export</span>
+          </button>
+          <div class="dropdown-menu">
+            <button class="dropdown-item" (click)="showImportModal = true">
+              <app-import-icon></app-import-icon>
+              <span>Import Data</span>
+            </button>
+            <button class="dropdown-item" (click)="showExportModal = true">
+              <app-export-icon></app-export-icon>
+              <span>Export Data</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announcements Tab Content -->
+    <div *ngIf="activeTab === 'announcements'" class="tab-content">
+      <div *ngIf="announcementTab === 'list'" class="announcements-list">
+        <!-- Announcements Table -->
+        <div class="table-container">
+          <table class="announcements-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Language</th>
+                <th>Target</th>
+                <th>Schedule</th>
+                <th>Status</th>
+                <th>Read Rate</th>
+                <th>Sent Date</th>
+                <th class="actions-column">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let announcement of filteredAnnouncements" class="announcement-row">
+                <!-- Title -->
+                <td class="announcement-title">
+                  <div class="title-text">{{announcement.title}}</div>
+                  <div class="message-preview">{{announcement.message | slice:0:100}}...</div>
+                </td>
+
+                <!-- Type -->
+                <td class="announcement-type">
+                  <span class="type-badge" [class]="announcement.messageType === 'audio' ? 'type-audio' : 'type-text'">
+                    <span *ngIf="announcement.messageType === 'audio'">
+                      <app-audio-icon></app-audio-icon> Audio
+                    </span>
+                    <span *ngIf="announcement.messageType === 'text'">
+                      Text
+                    </span>
+                  </span>
+                </td>
+
+                <!-- Language -->
+                <td class="announcement-language">
+                  <span class="language-badge">{{announcement.language}}</span>
+                </td>
+
+                <!-- Target -->
+                <td class="announcement-target">
+                  <div class="target-info">
+                    <span class="target-type">{{announcement.targetAudience.type | titlecase}}</span>
+                    <div *ngIf="announcement.targetAudience.type === 'group'" class="target-details">
+                      {{announcement.targetAudience.groupIds?.length}} groups
+                    </div>
+                    <div *ngIf="announcement.targetAudience.type === 'individual'" class="target-details">
+                      {{announcement.targetAudience.farmerIds?.length}} farmers
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Schedule -->
+                <td class="announcement-schedule">
+                  <div *ngIf="announcement.schedule.sendNow" class="schedule-now">
+                    Sent Now
+                  </div>
+                  <div *ngIf="!announcement.schedule.sendNow" class="schedule-future">
+                    <div>{{formatDate(announcement.schedule.scheduledDate)}}</div>
+                    <div *ngIf="announcement.schedule.repeat !== 'none'" class="repeat-info">
+                      Repeats: {{announcement.schedule.repeat}}
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Status -->
+                <td class="announcement-status">
+                  <span class="status-badge" [class]="getStatusClass(announcement.status)">
+                    {{announcement.status | titlecase}}
+                  </span>
+                </td>
+
+                <!-- Read Rate -->
+                <td class="announcement-read-rate">
+                  <div class="read-rate-container">
+                    <div class="read-rate-bar">
+                      <div class="read-rate-fill" [style.width.%]="getReadRate(announcement)"></div>
+                    </div>
+                    <div class="read-rate-text" [class]="getReadRateClass(getReadRate(announcement))">
+                      {{getReadRate(announcement)}}%
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Sent Date -->
+                <td class="announcement-date">
+                  {{formatDate(announcement.sentDate)}}
+                </td>
+
+                <!-- Actions -->
+                <td class="actions-cell">
+                  <div class="action-buttons">
+                    <button class="action-btn view-btn" (click)="viewAnnouncement(announcement)" title="View Details">
+                      <app-view-farmer-icon></app-view-farmer-icon>
+                    </button>
+                    <button class="action-btn edit-btn" (click)="editAnnouncement(announcement)" title="Edit">
+                      <app-edit-farmer-icon></app-edit-farmer-icon>
+                    </button>
+                    <button *ngIf="announcement.status === 'scheduled'" class="action-btn send-btn" (click)="sendAnnouncement(announcement)" title="Send Now">
+                      <app-send-icon></app-send-icon>
+                    </button>
+                    <button *ngIf="announcement.messageType === 'audio'" class="action-btn play-btn" (click)="playAudioMessage(announcement.audioUrl!)" title="Play Audio">
+                      <app-play-icon></app-play-icon>
+                    </button>
+                    <button class="action-btn delete-btn" (click)="deleteAnnouncement(announcement)" title="Delete">
+                      <app-delete-farmer-icon></app-delete-farmer-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Empty State -->
+          <div *ngIf="filteredAnnouncements.length === 0" class="empty-state">
+            <app-megaphone-icon></app-megaphone-icon>
+            <p>No announcements found</p>
+            <button class="btn btn-primary" (click)="openCreateAnnouncement()">
+              <app-add-communication-icon></app-add-communication-icon>
+              <span>Create Your First Announcement</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcement View Tab -->
+      <div *ngIf="announcementTab === 'view' && selectedAnnouncement" class="announcement-view">
+        <div class="view-header">
+          <button class="btn btn-outline" (click)="announcementTab = 'list'">
+            <app-x-circle-icon></app-x-circle-icon>
+            <span>Back to List</span>
+          </button>
+          <h3>{{selectedAnnouncement.title}}</h3>
+        </div>
+
+        <div class="view-content">
+          <div class="announcement-details">
+            <!-- Message -->
+            <div class="detail-section">
+              <h4>Message</h4>
+              <div class="message-content">
+                {{selectedAnnouncement.message}}
+              </div>
+              <div *ngIf="selectedAnnouncement.messageType === 'audio'" class="audio-player">
+                <div class="audio-container">
+                  <div class="audio-controls">
+                    <button class="btn btn-outline" (click)="toggleAudioPlayback(selectedAnnouncement)" [disabled]="!selectedAnnouncement.audioUrl">
+                      <app-play-icon *ngIf="!isPlaying(selectedAnnouncement)"></app-play-icon>
+                      <app-pause-icon *ngIf="isPlaying(selectedAnnouncement)"></app-pause-icon>
+                      <span>{{isPlaying(selectedAnnouncement) ? 'Pause' : 'Play'}} Audio</span>
+                    </button>
+                    <button class="btn btn-outline" (click)="stopAudio()" [disabled]="!selectedAnnouncement.audioUrl || !isPlaying(selectedAnnouncement)">
+                      <app-stop-icon></app-stop-icon>
+                      <span>Stop</span>
+                    </button>
+                    <div class="audio-info" *ngIf="selectedAnnouncement.audioUrl">
+                      <span>Duration: {{getAudioDuration(selectedAnnouncement)}}</span>
+                      <span class="audio-size">{{getAudioSize(selectedAnnouncement)}}</span>
+                    </div>
+                  </div>
+                  <div class="audio-waveform" *ngIf="selectedAnnouncement.audioUrl">
+                    <div class="waveform-container">
+                      <canvas #audioWaveform class="waveform-canvas"></canvas>
+                    </div>
+                    <div class="audio-progress">
+                      <div class="progress-bar" [style.width.%]="getAudioProgress()"></div>
+                    </div>
+                    <div class="audio-time">
+                      <span>{{formatAudioTime(currentTime)}}</span>
+                      <span>{{formatAudioTime(selectedAnnouncement.audioDuration || 0)}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Details Grid -->
+            <div class="details-grid">
+              <div class="detail-item">
+                <strong>Type:</strong>
+                <span class="detail-value">{{selectedAnnouncement.messageType | titlecase}}</span>
+              </div>
+              <div class="detail-item">
+                <strong>Language:</strong>
+                <span class="detail-value">{{selectedAnnouncement.language}}</span>
+              </div>
+              <div class="detail-item">
+                <strong>Status:</strong>
+                <span class="status-badge" [class]="getStatusClass(selectedAnnouncement.status)">
+                  {{selectedAnnouncement.status | titlecase}}
+                </span>
+              </div>
+              <div class="detail-item">
+                <strong>Created By:</strong>
+                <span class="detail-value">{{selectedAnnouncement.createdBy}}</span>
+              </div>
+              <div class="detail-item">
+                <strong>Created At:</strong>
+                <span class="detail-value">{{formatDate(selectedAnnouncement.createdAt)}}</span>
+              </div>
+              <div class="detail-item">
+                <strong>Sent At:</strong>
+                <span class="detail-value">{{formatDate(selectedAnnouncement.sentDate)}}</span>
+              </div>
+            </div>
+
+            <!-- Target Audience -->
+            <div class="detail-section">
+              <h4>Target Audience</h4>
+              <div class="detail-item">
+                <strong>Type:</strong>
+                <span class="detail-value">{{selectedAnnouncement.targetAudience.type | titlecase}}</span>
+              </div>
+              <div *ngIf="selectedAnnouncement.targetAudience.type === 'group'" class="detail-item">
+                <strong>Groups:</strong>
+                <span class="detail-value">{{selectedAnnouncement.targetAudience.groupIds?.length}} groups</span>
+              </div>
+              <div *ngIf="selectedAnnouncement.targetAudience.type === 'individual'" class="detail-item">
+                <strong>Farmers:</strong>
+                <span class="detail-value">{{selectedAnnouncement.targetAudience.farmerIds?.length}} farmers</span>
+              </div>
+            </div>
+
+            <!-- Schedule -->
+            <div class="detail-section">
+              <h4>Schedule</h4>
+              <div class="detail-item">
+                <strong>Sent Now:</strong>
+                <span class="detail-value">{{selectedAnnouncement.schedule.sendNow ? 'Yes' : 'No'}}</span>
+              </div>
+              <div *ngIf="!selectedAnnouncement.schedule.sendNow" class="detail-item">
+                <strong>Scheduled Date:</strong>
+                <span class="detail-value">{{formatDate(selectedAnnouncement.schedule.scheduledDate)}}</span>
+              </div>
+              <div class="detail-item">
+                <strong>Repeat:</strong>
+                <span class="detail-value">{{selectedAnnouncement.schedule.repeat | titlecase}}</span>
+              </div>
+            </div>
+
+            <!-- Performance -->
+            <div class="detail-section">
+              <h4>Performance</h4>
+              <div class="detail-item">
+                <strong>Total Recipients:</strong>
+                <span class="detail-value">{{selectedAnnouncement.totalRecipients}}</span>
+              </div>
+              <div class="detail-item">
+                <strong>Read Count:</strong>
+                <span class="detail-value">{{selectedAnnouncement.readCount}}</span>
+              </div>
+              <div class="detail-item">
+                <strong>Read Rate:</strong>
+                <span class="detail-value read-rate" [class]="getReadRateClass(getReadRate(selectedAnnouncement))">
+                  {{getReadRate(selectedAnnouncement)}}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view-actions">
+          <button class="btn btn-outline" (click)="announcementTab = 'list'">
+            <span>Close</span>
+          </button>
+          <button class="btn btn-outline" (click)="editAnnouncement(selectedAnnouncement)">
+            <app-edit-farmer-icon></app-edit-farmer-icon>
+            <span>Edit</span>
+          </button>
+          <button *ngIf="selectedAnnouncement.status === 'scheduled'" class="btn btn-primary" (click)="sendAnnouncement(selectedAnnouncement)">
+            <app-send-icon></app-send-icon>
+            <span>Send Now</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Templates Tab Content -->
+    <div *ngIf="activeTab === 'templates'" class="tab-content">
+      <div class="templates-grid">
+        <div *ngFor="let template of templates" class="template-card">
+          <div class="template-header">
+            <div class="template-icon">
+              <app-template-icon></app-template-icon>
+            </div>
+            <div class="template-category">
+              <span class="category-badge" [class]="getCategoryClass(template.category)">
+                {{template.category.replace('_', ' ') | titlecase}}
+              </span>
+            </div>
+          </div>
+          
+          <div class="template-content">
+            <h4>{{template.name}}</h4>
+            <div class="template-language">
+              <span class="language-badge">{{template.language}}</span>
+            </div>
+            <div class="template-preview">
+              {{template.content | slice:0:150}}...
+            </div>
+            <div *ngIf="template.variables.length > 0" class="template-variables">
+              <strong>Variables:</strong>
+              <div class="variable-tags">
+                <span *ngFor="let variable of template.variables" class="variable-tag">
+                  {{variable}}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="template-footer">
+            <div class="template-date">
+              Created: {{formatDate(template.createdAt)}}
+            </div>
+            <div class="template-actions">
+              <button class="btn btn-outline" (click)="useTemplate(template)">
+                <app-duplicate-icon></app-duplicate-icon>
+                <span>Use Template</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="templates.length === 0" class="empty-state">
+          <app-template-icon></app-template-icon>
+          <p>No templates found</p>
+          <button class="btn btn-primary" (click)="openCreateTemplate()">
+            <app-template-icon></app-template-icon>
+            <span>Create Your First Template</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Needs Tab Content -->
+    <div *ngIf="activeTab === 'needs'" class="tab-content">
+      <div *ngIf="needsTab === 'list'" class="needs-list">
+        <!-- Needs Table -->
+        <div class="table-container">
+          <table class="needs-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Urgency</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Responses</th>
+                <th>Created</th>
+                <th class="actions-column">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let need of needs" class="need-row">
+                <!-- Title -->
+                <td class="need-title">
+                  <div class="title-text">{{need.title}}</div>
+                  <div class="description-preview">{{need.description | slice:0:80}}...</div>
+                </td>
+
+                <!-- Category -->
+                <td class="need-category">
+                  <span class="category-badge" [class]="getNeedCategoryClass(need.category)">
+                    {{need.category | titlecase}}
+                  </span>
+                </td>
+
+                <!-- Quantity -->
+                <td class="need-quantity">
+                  <div class="quantity-info">
+                    <span class="quantity-value">{{need.quantity}}</span>
+                    <span class="quantity-unit">{{need.unit}}</span>
+                  </div>
+                </td>
+
+                <!-- Urgency -->
+                <td class="need-urgency">
+                  <span class="urgency-badge" [class]="getUrgencyClass(need.urgency)">
+                    {{need.urgency | titlecase}}
+                  </span>
+                </td>
+
+                <!-- Deadline -->
+                <td class="need-deadline">
+                  {{formatDate(need.deadline)}}
+                </td>
+
+                <!-- Status -->
+                <td class="need-status">
+                  <span class="status-badge" [class]="getStatusClass(need.status)">
+                    {{need.status | titlecase}}
+                  </span>
+                </td>
+
+                <!-- Responses -->
+                <td class="need-responses">
+                  <div class="responses-info">
+                    <span class="responses-count">{{need.responses.length}}</span>
+                    <span class="responses-text">responses</span>
+                  </div>
+                  <div *ngIf="need.responses.length > 0" class="responses-accepted">
+                    {{getAcceptedResponsesCount(need)}} accepted
+                  </div>
+                </td>
+
+                <!-- Created Date -->
+                <td class="need-date">
+                  {{formatDate(need.createdAt)}}
+                </td>
+
+                <!-- Actions -->
+                <td class="actions-cell">
+                  <div class="action-buttons">
+                    <button class="action-btn view-btn" (click)="viewNeed(need)" title="View Details">
+                      <app-view-farmer-icon></app-view-farmer-icon>
+                    </button>
+                    <button class="action-btn response-btn" (click)="addResponse(need)" title="Add Response">
+                      <app-supplier-icon></app-supplier-icon>
+                    </button>
+                    <button class="action-btn delete-btn" title="Delete">
+                      <app-delete-farmer-icon></app-delete-farmer-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Empty State -->
+          <div *ngIf="needs.length === 0" class="empty-state">
+            <app-needs-icon></app-needs-icon>
+            <p>No needs posted yet</p>
+            <button class="btn btn-primary" (click)="openCreateNeed()">
+              <app-add-farmer-icon></app-add-farmer-icon>
+              <span>Post Your First Need</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Need View Tab -->
+      <div *ngIf="needsTab === 'view' && selectedNeed" class="need-view">
+        <div class="view-header">
+          <button class="btn btn-outline" (click)="needsTab = 'list'">
+            <app-x-circle-icon></app-x-circle-icon>
+            <span>Back to List</span>
+          </button>
+          <h3>{{selectedNeed.title}}</h3>
+        </div>
+
+        <div class="view-content">
+          <div class="need-details">
+            <!-- Basic Info -->
+            <div class="detail-section">
+              <h4>Need Information</h4>
+              <div class="details-grid">
+                <div class="detail-item">
+                  <strong>Category:</strong>
+                  <span class="detail-value">{{selectedNeed.category | titlecase}}</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Quantity:</strong>
+                  <span class="detail-value">{{selectedNeed.quantity}} {{selectedNeed.unit}}</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Urgency:</strong>
+                  <span class="urgency-badge" [class]="getUrgencyClass(selectedNeed.urgency)">
+                    {{selectedNeed.urgency | titlecase}}
+                  </span>
+                </div>
+                <div class="detail-item">
+                  <strong>Status:</strong>
+                  <span class="status-badge" [class]="getStatusClass(selectedNeed.status)">
+                    {{selectedNeed.status | titlecase}}
+                  </span>
+                </div>
+                <div class="detail-item">
+                  <strong>Deadline:</strong>
+                  <span class="detail-value">{{formatDate(selectedNeed.deadline)}}</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Created By:</strong>
+                  <span class="detail-value">{{selectedNeed.createdBy}}</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Created At:</strong>
+                  <span class="detail-value">{{formatDate(selectedNeed.createdAt)}}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="detail-section">
+              <h4>Description</h4>
+              <div class="description-content">
+                {{selectedNeed.description}}
+              </div>
+              <div *ngIf="selectedNeed.notes" class="notes-content">
+                <strong>Notes:</strong> {{selectedNeed.notes}}
+              </div>
+            </div>
+
+            <!-- Responses -->
+            <div class="detail-section">
+              <h4>Supplier Responses ({{selectedNeed.responses.length}})</h4>
+              <div *ngIf="selectedNeed.responses.length === 0" class="no-responses">
+                <p>No responses yet</p>
+              </div>
+              <div *ngFor="let response of selectedNeed.responses" class="response-card">
+                <div class="response-header">
+                  <div class="response-supplier">
+                    <strong>{{response.supplierName}}</strong>
+                    <span class="response-contact">{{response.contact}}</span>
+                  </div>
+                  <div class="response-status">
+                    <span class="status-badge" [class]="getStatusClass(response.status)">
+                      {{response.status | titlecase}}
+                    </span>
+                  </div>
+                </div>
+                <div class="response-details">
+                  <div class="response-price">
+                    <strong>Price:</strong> ₦{{response.price | number}}
+                  </div>
+                  <div class="response-availability">
+                    <strong>Available:</strong> {{formatDate(response.availabilityDate)}}
+                  </div>
+                  <div *ngIf="response.notes" class="response-notes">
+                    <strong>Notes:</strong> {{response.notes}}
+                  </div>
+                </div>
+                <div class="response-date">
+                  Submitted: {{formatDate(response.createdAt)}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view-actions">
+          <button class="btn btn-outline" (click)="needsTab = 'list'">
+            <span>Close</span>
+          </button>
+          <button class="btn btn-primary" (click)="addResponse(selectedNeed)">
+            <app-supplier-icon></app-supplier-icon>
+            <span>Add Response</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+
+  <!-- Create Announcement Modal -->
+  <div *ngIf="showCreateAnnouncementModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{selectedAnnouncement ? 'Edit Announcement' : 'Create New Announcement'}}</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="announcementForm" (ngSubmit)="createAnnouncement()">
+        <div class="modal-body">
+          <!-- Basic Information -->
+          <div class="form-section">
+            <h4>Basic Information</h4>
+            <div class="form-group">
+              <label>Title *</label>
+              <input type="text" formControlName="title" placeholder="Enter announcement title">
+            </div>
+            
+            <div class="form-group">
+              <label>Message Type *</label>
+              <div class="message-type-options">
+                <label class="radio-option">
+                  <input type="radio" formControlName="messageType" value="text">
+                  <div class="option-content">
+                    <div class="option-icon">
+                      <app-text-icon></app-text-icon>
+                    </div>
+                    <div class="option-info">
+                      <strong>Text Message</strong>
+                      <span>Type out your message</span>
+                    </div>
+                  </div>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" formControlName="messageType" value="audio">
+                  <div class="option-content">
+                    <div class="option-icon">
+                      <app-audio-icon></app-audio-icon>
+                    </div>
+                    <div class="option-info">
+                      <strong>Audio Message</strong>
+                      <span>Record or upload audio</span>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Language *</label>
+              <select formControlName="language">
+                <option *ngFor="let lang of languages" [value]="lang">{{lang}}</option>
+              </select>
+            </div>
+            
+            <!-- Text Message Input -->
+            <div *ngIf="announcementForm.get('messageType')?.value === 'text'" class="form-group">
+              <label>Message *</label>
+              <textarea formControlName="message" placeholder="Enter your message here..." rows="6"></textarea>
+              <div class="char-count">
+                Characters: {{announcementForm.get('message')?.value?.length || 0}}/500
+              </div>
+            </div>
+            
+            <!-- Audio Message Input -->
+            <div *ngIf="announcementForm.get('messageType')?.value === 'audio'" class="form-group">
+              <label>Audio Message</label>
+              <div class="audio-recorder-container">
+                <!-- Record Audio Section -->
+                <div class="audio-recorder">
+                  <div class="recorder-header">
+                    <h5>Record Audio</h5>
+                    <div class="recorder-status" [class]="recordingStatusClass">
+                      <span class="status-indicator"></span>
+                      {{recordingStatusText}}
+                    </div>
+                  </div>
+                  
+                  <div class="recorder-controls">
+                    <button type="button" class="btn btn-outline" (click)="startRecording()" [disabled]="isRecording || isUploading">
+                      <app-mic-icon></app-mic-icon>
+                      <span>Start Recording</span>
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline" (click)="stopRecording()" [disabled]="!isRecording">
+                      <app-stop-icon></app-stop-icon>
+                      <span>Stop Recording</span>
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline" (click)="togglePauseRecording()" [disabled]="!isRecording">
+                      <app-pause-icon *ngIf="!isPaused"></app-pause-icon>
+                      <app-play-icon *ngIf="isPaused"></app-play-icon>
+                      <span>{{isPaused ? 'Resume' : 'Pause'}}</span>
+                    </button>
+                  </div>
+                  
+                  <div class="recorder-display">
+                    <div class="recording-time">
+                      <app-clock-icon></app-clock-icon>
+                      <span>{{formatRecordingTime(recordingTime)}}</span>
+                    </div>
+                    
+                    <div class="audio-waveform-preview">
+                      <canvas #recordingWaveform class="waveform-canvas"></canvas>
+                    </div>
+                    
+                    <div *ngIf="audioBlob" class="recording-preview">
+                      <div class="preview-audio">
+                        <div class="audio-info">
+                          <app-audio-icon></app-audio-icon>
+                          <div>
+                            <strong>Recording Preview</strong>
+                            <span>Duration: {{formatRecordingTime(audioDuration)}}</span>
+                          </div>
+                        </div>
+                        <div class="audio-actions">
+                          <button type="button" class="btn btn-outline" (click)="playRecording()">
+                            <app-play-icon></app-play-icon>
+                            <span>Play</span>
+                          </button>
+                          <button type="button" class="btn btn-outline" (click)="deleteRecording()">
+                            <app-delete-farmer-icon></app-delete-farmer-icon>
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Upload Audio Section -->
+                <div class="audio-upload">
+                  <h5>Or Upload Audio File</h5>
+                  <div class="upload-area" (click)="fileInput.click()" [class.dragover]="isDragOver" 
+                       (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+                    <input type="file" #fileInput accept="audio/*" (change)="onFileSelected($event)" hidden>
+                    <div class="upload-icon">
+                      <app-upload-icon></app-upload-icon>
+                    </div>
+                    <div class="upload-text">
+                      <p>Drag & drop audio file here</p>
+                      <p>or <span class="text-link">click to browse</span></p>
+                    </div>
+                    <div class="upload-info">
+                      <small>Supported formats: MP3, WAV, M4A</small>
+                      <small>Max size: 10MB</small>
+                    </div>
+                  </div>
+                  
+                  <div *ngIf="uploadedFile" class="uploaded-file">
+                    <div class="file-info">
+                      <app-audio-icon></app-audio-icon>
+                      <div class="file-details">
+                        <strong>{{uploadedFile.name}}</strong>
+                        <span>{{formatFileSize(uploadedFile.size)}} • {{getAudioDurationFromFile(uploadedFile)}}</span>
+                      </div>
+                    </div>
+                    <div class="file-actions">
+                      <button type="button" class="btn btn-outline" (click)="playUploadedAudio()">
+                        <app-play-icon></app-play-icon>
+                      </button>
+                      <button type="button" class="btn btn-outline" (click)="removeUploadedFile()">
+                        <app-delete-farmer-icon></app-delete-farmer-icon>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Message field for audio (optional text description) -->
+                  <div class="form-group">
+                    <label>Message Text (Optional)</label>
+                    <textarea formControlName="message" placeholder="Add text description or transcription for the audio message..." rows="3"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Target Audience -->
+          <div class="form-section">
+            <h4>Target Audience</h4>
+            <div class="form-group">
+              <label>Audience Type *</label>
+              <select formControlName="targetAudience.type">
+                <option *ngFor="let type of targetAudienceTypes" [value]="type">{{type | titlecase}}</option>
+              </select>
+            </div>
+            
+            <div *ngIf="announcementForm.get('targetAudience.type')?.value === 'group'" class="form-group">
+              <label>Select Groups</label>
+              <div class="checkbox-group multi-checkbox">
+                <label *ngFor="let group of farmerGroups">
+                  <input type="checkbox" [value]="group.id" 
+                         (change)="onGroupChange($event, group.id)">
+                  {{group.name}}
+                </label>
+              </div>
+            </div>
+            
+            <div *ngIf="announcementForm.get('targetAudience.type')?.value === 'individual'" class="form-group">
+              <label>Select Farmers (Comma-separated IDs)</label>
+              <input type="text" formControlName="targetAudience.farmerIds" placeholder="farmer-1, farmer-2, farmer-3">
+            </div>
+          </div>
+          
+          <!-- Schedule -->
+          <div class="form-section">
+            <h4>Schedule</h4>
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input type="checkbox" formControlName="schedule.sendNow" id="sendNow">
+                <label for="sendNow">Send Immediately</label>
+              </div>
+            </div>
+            
+            <div *ngIf="!announcementForm.get('schedule.sendNow')?.value" class="form-group">
+              <label>Scheduled Date & Time</label>
+              <input type="datetime-local" formControlName="schedule.scheduledDate">
+            </div>
+            
+            <div class="form-group">
+              <label>Repeat</label>
+              <select formControlName="schedule.repeat">
+                <option *ngFor="let option of repeatOptions" [value]="option">{{option | titlecase}}</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Preview -->
+          <div class="form-section">
+            <h4>Preview</h4>
+            <div class="preview-box">
+              <div class="preview-title">{{announcementForm.get('title')?.value || 'Title will appear here'}}</div>
+              <div class="preview-content">
+                <div *ngIf="announcementForm.get('messageType')?.value === 'text'" class="preview-message">
+                  {{announcementForm.get('message')?.value || 'Message will appear here...'}}
+                </div>
+                <div *ngIf="announcementForm.get('messageType')?.value === 'audio'" class="preview-audio-message">
+                  <div class="audio-preview">
+                    <app-audio-icon></app-audio-icon>
+                    <span>Audio message ready</span>
+                    <div class="audio-duration" *ngIf="audioDuration">
+                      {{formatRecordingTime(audioDuration)}}
+                    </div>
+                  </div>
+                  <div *ngIf="announcementForm.get('message')?.value" class="audio-text-preview">
+                    <strong>Text note:</strong> {{announcementForm.get('message')?.value | slice:0:100}}...
+                  </div>
+                </div>
+              </div>
+              <div class="preview-details">
+                <span class="preview-type">{{announcementForm.get('messageType')?.value || 'text'}} message</span>
+                <span class="preview-language">{{announcementForm.get('language')?.value || 'English'}}</span>
+                <span class="preview-target">{{announcementForm.get('targetAudience.type')?.value || 'all'}} audience</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="announcementForm.invalid || isLoading || (announcementForm.get('messageType')?.value === 'audio' && !audioBlob && !uploadedFile)">
+            {{isLoading ? 'Processing...' : (selectedAnnouncement ? 'Update' : 'Create')}} Announcement
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create Template Modal -->
+  <div *ngIf="showCreateTemplateModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Create Message Template</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="templateForm" (ngSubmit)="createTemplate()">
+        <div class="modal-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Template Name *</label>
+              <input type="text" formControlName="name" placeholder="e.g., Market Price Update">
+            </div>
+            
+            <div class="form-group">
+              <label>Category *</label>
+              <select formControlName="category">
+                <option *ngFor="let cat of categories" [value]="cat">
+                  {{cat.replace('_', ' ') | titlecase}}
+                </option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Language *</label>
+              <select formControlName="language">
+                <option *ngFor="let lang of languages" [value]="lang">{{lang}}</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Template Content *</label>
+              <textarea formControlName="content" placeholder="Enter template content. Use {{ '{' }}variable{{ '}' }} for dynamic values." rows="6"></textarea>
+              <div class="template-help">
+                <strong>Variables:</strong> Wrap dynamic values in curly braces, e.g., {{ '{' }}price{{ '}' }}, {{ '{' }}date{{ '}' }}, {{ '{' }}crop{{ '}' }}
+              </div>
+            </div>
+            
+            <div *ngIf="templateForm.get('content')?.value" class="form-group">
+              <label>Detected Variables</label>
+              <div class="variable-list">
+                <span *ngFor="let variable of extractVariables(templateForm.value.content)" class="variable-tag">
+                  {{variable}}
+                </span>
+                <span *ngIf="extractVariables(templateForm.value.content).length === 0" class="no-variables">
+                  No variables detected
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="templateForm.invalid || isLoading">
+            Create Template
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create Need Modal -->
+  <div *ngIf="showCreateNeedModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Post New Need</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="needForm" (ngSubmit)="createNeed()">
+        <div class="modal-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Title *</label>
+              <input type="text" formControlName="title" placeholder="e.g., Organic Maize Seeds Required">
+            </div>
+            
+            <div class="form-group">
+              <label>Description *</label>
+              <textarea formControlName="description" placeholder="Describe what you need in detail..." rows="4"></textarea>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Category *</label>
+                <select formControlName="category">
+                  <option *ngFor="let cat of needCategories" [value]="cat">{{cat | titlecase}}</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Urgency *</label>
+                <select formControlName="urgency">
+                  <option *ngFor="let level of urgencyLevels" [value]="level">{{level | titlecase}}</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Quantity *</label>
+                <input type="number" formControlName="quantity" placeholder="0" min="1">
+              </div>
+              
+              <div class="form-group">
+                <label>Unit *</label>
+                <input type="text" formControlName="unit" placeholder="e.g., kg, bags, units">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Deadline (Optional)</label>
+              <input type="date" formControlName="deadline">
+            </div>
+            
+            <div class="form-group">
+              <label>Additional Notes</label>
+              <textarea formControlName="notes" placeholder="Any additional information..." rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="needForm.invalid || isLoading">
+            Post Need
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Send Announcement Modal -->
+  <div *ngIf="showSendAnnouncementModal && selectedAnnouncement" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Send Announcement</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="confirmation-icon">
+          <app-send-icon></app-send-icon>
+        </div>
+        <h4>Are you sure you want to send this announcement?</h4>
+        <p><strong>{{selectedAnnouncement.title}}</strong></p>
+        <p class="confirmation-details">
+          <strong>To:</strong> {{selectedAnnouncement.targetAudience.type | titlecase}} 
+          ({{selectedAnnouncement.totalRecipients}} recipients)<br>
+          <strong>Type:</strong> {{selectedAnnouncement.messageType | titlecase}} message<br>
+          <strong>Language:</strong> {{selectedAnnouncement.language}}
+        </p>
+        <p class="warning-text">This action cannot be undone. The message will be sent immediately.</p>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="confirmSendAnnouncement()" [disabled]="isSending">
+          {{isSending ? 'Sending...' : 'Send Now'}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Response Modal -->
+  <div *ngIf="showResponseModal && selectedNeed" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add Supplier Response</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="responseForm" (ngSubmit)="submitResponse()">
+        <div class="modal-body">
+          <div class="need-info">
+            <h4>{{selectedNeed.title}}</h4>
+            <p>{{selectedNeed.description}}</p>
+            <div class="need-details">
+              <span class="detail-badge">{{selectedNeed.quantity}} {{selectedNeed.unit}}</span>
+              <span class="detail-badge">{{selectedNeed.category | titlecase}}</span>
+              <span class="detail-badge" [class]="getUrgencyClass(selectedNeed.urgency)">
+                {{selectedNeed.urgency | titlecase}}
+              </span>
+            </div>
+          </div>
+          
+          <div class="form-section">
+            <div class="form-group">
+              <label>Supplier Name *</label>
+              <input type="text" formControlName="supplierName" placeholder="Enter supplier name">
+            </div>
+            
+            <div class="form-group">
+              <label>Contact Information *</label>
+              <input type="text" formControlName="contact" placeholder="Phone number or email">
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Price (₦) *</label>
+                <input type="number" formControlName="price" placeholder="0" min="0">
+              </div>
+              
+              <div class="form-group">
+                <label>Availability Date *</label>
+                <input type="date" formControlName="availabilityDate">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Additional Notes</label>
+              <textarea formControlName="notes" placeholder="Any additional information about this offer..." rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="responseForm.invalid || isLoading">
+            Submit Response
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteModal && selectedAnnouncement" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Deletion</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="warning-icon">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <h4>Are you sure you want to delete this announcement?</h4>
+        <p><strong>{{selectedAnnouncement.title}}</strong></p>
+        <p class="warning-text">This action cannot be undone. All associated data will be permanently deleted.</p>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="confirmDeleteAnnouncement()" [disabled]="isLoading">
+          {{isLoading ? 'Deleting...' : 'Delete Announcement'}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Modal -->
+  <div *ngIf="showFiltersModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content filters-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Filter Communications</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="filter-group">
+          <h4>Status</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="all">
+              <span>All Status</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="sent">
+              <span class="status-badge status-active">Sent</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="scheduled">
+              <span class="status-badge status-pending">Scheduled</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="draft">
+              <span class="status-badge status-inactive">Draft</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="failed">
+              <span class="status-badge status-suspended">Failed</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Message Type</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" value="all">
+              <span>All Types</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" value="text">
+              <span>Text Messages</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" value="audio">
+              <span>Audio Messages</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Category</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="category" [(ngModel)]="categoryFilter" value="all">
+              <span>All Categories</span>
+            </label>
+            <label *ngFor="let cat of categories" class="filter-option">
+              <input type="radio" name="category" [(ngModel)]="categoryFilter" [value]="cat">
+              <span>{{cat.replace('_', ' ') | titlecase}}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">
+          Clear All
+        </button>
+        <button type="button" class="btn btn-primary" (click)="applyFilters()">
+          Apply Filters
+        </button>
+      </div>
+    </div>
+  </div> 
+</div>
