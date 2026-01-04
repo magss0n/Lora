@@ -1,1 +1,1057 @@
-<p>production-stock works!</p>
+<div class="production-stock">
+  <!-- View Toggle -->
+  <div class="view-toggle">
+    <button class="view-btn" [class.active]="activeView === 'production'" (click)="switchView('production')">
+      <app-pallet-icon></app-pallet-icon>
+      <span>Production</span>
+    </button>
+    <button class="view-btn" [class.active]="activeView === 'stock'" (click)="switchView('stock')">
+      <app-warehouse-icon></app-warehouse-icon>
+      <span>Stock</span>
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <!-- Total Production/Stock -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon primary">
+          <app-scale-icon></app-scale-icon>
+        </div>
+        <div class="stat-trend positive">+12%</div>
+      </div>
+      <div class="stat-content">
+        <h3>{{ activeView === 'production' ? 'Total Production' : 'Total Stock' }}</h3>
+        <div class="value">
+          {{ activeView === 'production' ? productionStats.totalQuantity?.toLocaleString() : stockStats.totalQuantity?.toLocaleString() }}
+          {{ activeView === 'production' ? 'kg' : 'units' }}
+        </div>
+        <div class="stat-change positive">
+          <span>From last month</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Value -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon success">
+          <app-bar-chart-icon></app-bar-chart-icon>
+        </div>
+        <div class="stat-trend positive">+18%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Value</h3>
+        <div class="value">
+          {{ formatCurrency(activeView === 'production' ? productionStats.totalValue : stockStats.totalStockValue) }}
+        </div>
+        <div class="stat-change positive">
+          <span>Revenue increase</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending/Low Stock -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon warning">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <div class="stat-trend negative">-5%</div>
+      </div>
+      <div class="stat-content">
+        <h3>{{ activeView === 'production' ? 'Pending' : 'Low Stock' }}</h3>
+        <div class="value">{{ activeView === 'production' ? productionStats.pendingProductions : stockStats.lowStockItems }}</div>
+        <div class="stat-change negative">
+          <span>Needs attention</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approved/Fresh Stock -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon accent">
+          <app-check-circle-icon></app-check-circle-icon>
+        </div>
+        <div class="stat-trend positive">+15%</div>
+      </div>
+      <div class="stat-content">
+        <h3>{{ activeView === 'production' ? 'Approved' : 'Fresh Stock' }}</h3>
+        <div class="value">{{ activeView === 'production' ? productionStats.approvedProductions : '95%' }}</div>
+        <div class="stat-change positive">
+          <span>Good condition</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">
+        {{ activeView === 'production' ? 'Production Records' : 'Stock Inventory' }}
+      </h2>
+      
+      <!-- Actions Toolbar -->
+      <div class="action-toolbar">
+        <!-- Search -->
+        <div class="search-box">
+          <app-search-icon></app-search-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (keyup.enter)="onSearch()"
+            [placeholder]="activeView === 'production' ? 'Search by farmer, product, ID...' : 'Search by product, warehouse...'"
+          >
+          <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()">
+            <app-x-circle-icon></app-x-circle-icon>
+          </button>
+        </div>
+
+        <!-- Filter Button -->
+        <button class="btn btn-outline" (click)="showFiltersModal = true">
+          <app-filter-icon></app-filter-icon>
+          <span>Filter</span>
+        </button>
+
+        <!-- Primary Actions -->
+        <button *ngIf="activeView === 'production'" class="btn btn-primary" (click)="openAddProductionModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>Record Production</span>
+        </button>
+        
+        <button *ngIf="activeView === 'stock'" class="btn btn-primary" (click)="openAddStockModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>Add Stock</span>
+        </button>
+
+        <!-- Import/Export -->
+        <div class="dropdown">
+          <button class="btn btn-outline">
+            <app-export-icon></app-export-icon>
+            <span>Bulk Actions</span>
+          </button>
+          <div class="dropdown-menu">
+            <button class="dropdown-item" (click)="showImportModal = true">
+              <app-import-icon></app-import-icon>
+              <span>Import Data</span>
+            </button>
+            <button class="dropdown-item" (click)="showExportModal = true">
+              <app-export-icon></app-export-icon>
+              <span>Export Data</span>
+            </button>
+            <button *ngIf="activeView === 'stock'" class="dropdown-item" (click)="loadData()">
+              <app-refresh-icon></app-refresh-icon>
+              <span>Refresh Stock</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Production Table -->
+    <div *ngIf="activeView === 'production'" class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Production ID</th>
+            <th>Farmer</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Quality</th>
+            <th>Season</th>
+            <th>Status</th>
+            <th>Delivery Date</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let production of filteredProductions" class="data-row">
+            <!-- Production ID -->
+            <td class="production-id">
+              <div class="id-number">{{production.productionNumber}}</div>
+              <div class="id-date">{{formatDate(production.createdAt)}}</div>
+            </td>
+
+            <!-- Farmer -->
+            <td class="farmer-info">
+              <div class="farmer-name">{{production.farmerName}}</div>
+              <div class="farmer-location">{{production.location?.farmLocation || 'N/A'}}</div>
+            </td>
+
+            <!-- Product -->
+            <td class="product-info">
+              <div class="product-type">{{production.productType}}</div>
+              <div class="product-grade" [class]="getQualityClass(production.qualityGrade)">
+                Grade {{production.qualityGrade}}
+              </div>
+            </td>
+
+            <!-- Quantity -->
+            <td class="quantity-info">
+              <div class="quantity-value">{{formatQuantity(production.quantity, production.unit)}}</div>
+              <div *ngIf="production.price" class="quantity-value">
+                {{formatCurrency(production.price)}}
+              </div>
+            </td>
+
+            <!-- Quality -->
+            <td class="quality-info">
+              <div class="quality-badge" [class]="getQualityClass(production.qualityGrade)">
+                {{production.qualityGrade}}
+              </div>
+            </td>
+
+            <!-- Season -->
+            <td class="season-info">
+              <div class="season-badge">
+                {{production.season | titlecase}}
+              </div>
+              <div class="harvest-date">
+                {{formatDate(production.harvestDate)}}
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td class="status-info">
+              <div class="status-badge" [class]="getStatusClass(production.status)">
+                {{production.status | titlecase}}
+              </div>
+              <div *ngIf="production.paymentStatus" class="payment-status">
+                {{production.paymentStatus | titlecase}}
+              </div>
+            </td>
+
+            <!-- Delivery Date -->
+            <td class="date-info">
+              <div class="delivery-date">{{formatDate(production.deliveryDate)}}</div>
+              <div class="days-ago">
+                {{getDaysAgo(production.deliveryDate)}} days ago
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button class="action-btn view-btn" (click)="openViewProductionModal(production)" title="View Details">
+                  <app-eye-icon></app-eye-icon>
+                </button>
+                <button class="action-btn edit-btn" (click)="openEditProductionModal(production)" title="Edit">
+                  <app-edit-icon></app-edit-icon>
+                </button>
+                <button class="action-btn delete-btn" (click)="openDeleteProductionModal(production)" title="Delete">
+                  <app-trash-icon></app-trash-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredProductions.length === 0" class="empty-state">
+        <app-pallet-icon></app-pallet-icon>
+        <p>No production records found</p>
+        <button class="btn btn-primary" (click)="openAddProductionModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>Record First Production</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stock Table -->
+    <div *ngIf="activeView === 'stock'" class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Quantity</th>
+            <th>Stock Level</th>
+            <th>Warehouse</th>
+            <th>Quality</th>
+            <th>Shelf Life</th>
+            <th>Value</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let stock of filteredStocks" class="data-row">
+            <!-- Product -->
+            <td class="product-info">
+              <div class="product-name">{{stock.productName}}</div>
+              <div class="product-type">{{stock.productType}}</div>
+              <div *ngIf="stock.batchNumber" class="batch-number">
+                {{stock.batchNumber}}
+              </div>
+            </td>
+
+            <!-- Category -->
+            <td class="category-info">
+              <div class="category-badge">
+                {{stock.category | titlecase}}
+              </div>
+            </td>
+
+            <!-- Quantity -->
+            <td class="quantity-info">
+              <div class="quantity-value">{{formatQuantity(stock.quantity, stock.unit)}}</div>
+              <div class="stock-range">
+                Min: {{stock.minStockLevel}} | Max: {{stock.maxStockLevel}}
+              </div>
+            </td>
+
+            <!-- Stock Level -->
+            <td class="stock-level-info">
+              <div class="level-bar">
+                <div class="level-fill" [class]="getStockLevelClass(stock)" 
+                     [style.width.%]="(stock.quantity / stock.maxStockLevel) * 100">
+                </div>
+              </div>
+              <div class="level-text">
+                {{((stock.quantity / stock.maxStockLevel) * 100).toFixed(1)}}%
+              </div>
+            </td>
+
+            <!-- Warehouse -->
+            <td class="warehouse-info">
+              <div class="warehouse-name">{{stock.warehouseLocation}}</div>
+              <div *ngIf="stock.supplier" class="supplier">
+                {{stock.supplier}}
+              </div>
+            </td>
+
+            <!-- Quality -->
+            <td class="quality-info">
+              <div class="quality-badge" [class]="getStockStatusClass(stock.qualityStatus)">
+                {{stock.qualityStatus | titlecase}}
+              </div>
+              <div class="last-updated">
+                {{formatDate(stock.lastUpdated)}}
+              </div>
+            </td>
+
+            <!-- Shelf Life -->
+            <td class="shelf-life-info">
+              <div *ngIf="stock.shelfLife" class="shelf-date">
+                {{formatDate(stock.shelfLife)}}
+              </div>
+              <div *ngIf="stock.shelfLife" class="days-left">
+                {{getDaysUntil(stock.shelfLife)}} days left
+              </div>
+              <div *ngIf="!stock.shelfLife" class="no-shelf">
+                N/A
+              </div>
+            </td>
+
+            <!-- Value -->
+            <td class="value-info">
+              <div class="value-amount">{{formatCurrency(stock.value || 0)}}</div>
+              <div class="unit-value">
+                {{formatCurrency((stock.value || 0) / stock.quantity)}}/{{stock.unit}}
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button class="action-btn view-btn" (click)="openViewStockModal(stock)" title="View Details">
+                  <app-eye-icon></app-eye-icon>
+                </button>
+                <button class="action-btn edit-btn" (click)="openEditStockModal(stock)" title="Edit">
+                  <app-edit-icon></app-edit-icon>
+                </button>
+                <button class="action-btn movement-btn" (click)="openStockMovementModal(stock)" title="Record Movement">
+                  <app-truck-icon></app-truck-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredStocks.length === 0" class="empty-state">
+        <app-warehouse-icon></app-warehouse-icon>
+        <p>No stock items found</p>
+        <button class="btn btn-primary" (click)="openAddStockModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>Add First Stock Item</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pagination (Production only) -->
+    <div *ngIf="activeView === 'production' && totalPages > 1" class="pagination">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        Previous
+      </button>
+      
+      <div class="page-numbers">
+        <button *ngFor="let page of getPageNumbers()" 
+                class="page-number" 
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)">
+          {{page}}
+        </button>
+      </div>
+      
+      <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        Next
+      </button>
+      
+      <div class="page-info">
+        Showing {{(currentPage - 1) * itemsPerPage + 1}}-{{getEndIndex()}} of {{totalItems}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+
+  <!-- Add Production Modal -->
+  <div *ngIf="showAddProductionModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Record New Production</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="productionForm" (ngSubmit)="addProduction()">
+        <div class="modal-body">
+          <div class="form-section">
+            <h4>Production Details</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Farmer *</label>
+                <select formControlName="farmerId">
+                  <option value="">Select Farmer</option>
+                  <option *ngFor="let farmer of farmers" [value]="farmer.id">
+                    {{farmer.firstName}} {{farmer.lastName}} - {{farmer.registrationNumber}}
+                  </option>
+                </select>
+                <div *ngIf="productionForm.get('farmerId')?.invalid && productionForm.get('farmerId')?.touched" class="error">
+                  Farmer is required
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Product Type *</label>
+                <select formControlName="productType">
+                  <option value="">Select Product</option>
+                  <option *ngFor="let type of productTypes" [value]="type">{{type}}</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Quantity *</label>
+                <input type="number" formControlName="quantity" placeholder="0" step="0.1" min="0">
+              </div>
+              <div class="form-group">
+                <label>Unit *</label>
+                <select formControlName="unit">
+                  <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Quality Grade *</label>
+                <select formControlName="qualityGrade">
+                  <option *ngFor="let grade of qualityGrades" [value]="grade">Grade {{grade}}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Season *</label>
+                <select formControlName="season">
+                  <option *ngFor="let season of seasons" [value]="season">{{season | titlecase}}</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Harvest Date *</label>
+                <input type="date" formControlName="harvestDate" [max]="today">
+              </div>
+              <div class="form-group">
+                <label>Delivery Date *</label>
+                <input type="date" formControlName="deliveryDate" [max]="today">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Price (₦)</label>
+              <input type="number" formControlName="price" placeholder="0" min="0">
+            </div>
+            
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea formControlName="notes" placeholder="Additional notes..." rows="3"></textarea>
+            </div>
+          </div>
+          
+          <div class="form-section">
+            <h4>Location Details</h4>
+            <div class="form-group">
+              <label>Farm Location</label>
+              <input type="text" formControlName="location.farmLocation" placeholder="Enter farm location">
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Record Production
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Production Modal -->
+  <div *ngIf="showViewProductionModal && selectedProduction" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content view-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Production Details</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="detail-header">
+          <div class="detail-title">
+            <h2>{{selectedProduction.productionNumber}}</h2>
+            <div class="detail-subtitle">{{selectedProduction.productType}} Delivery</div>
+          </div>
+          <div class="detail-status">
+            <span class="status-badge" [class]="getStatusClass(selectedProduction.status)">
+              {{selectedProduction.status | titlecase}}
+            </span>
+            <span class="quality-badge" [class]="getQualityClass(selectedProduction.qualityGrade)">
+              Grade {{selectedProduction.qualityGrade}}
+            </span>
+          </div>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-section">
+            <h4>Basic Information</h4>
+            <div class="detail-item">
+              <strong>Farmer:</strong> {{selectedProduction.farmerName}}
+            </div>
+            <div class="detail-item">
+              <strong>Product Type:</strong> {{selectedProduction.productType}}
+            </div>
+            <div class="detail-item">
+              <strong>Quantity:</strong> {{formatQuantity(selectedProduction.quantity, selectedProduction.unit)}}
+            </div>
+            <div class="detail-item">
+              <strong>Season:</strong> {{selectedProduction.season | titlecase}}
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Dates</h4>
+            <div class="detail-item">
+              <strong>Harvest Date:</strong> {{formatDate(selectedProduction.harvestDate)}}
+            </div>
+            <div class="detail-item">
+              <strong>Delivery Date:</strong> {{formatDate(selectedProduction.deliveryDate)}}
+            </div>
+            <div class="detail-item">
+              <strong>Recorded On:</strong> {{formatDate(selectedProduction.createdAt)}}
+            </div>
+            <div class="detail-item">
+              <strong>Last Updated:</strong> {{formatDate(selectedProduction.updatedAt)}}
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Financial</h4>
+            <div class="detail-item">
+              <strong>Price:</strong> {{formatCurrency(selectedProduction.price || 0)}}
+            </div>
+            <div class="detail-item">
+              <strong>Payment Status:</strong> 
+              <span class="payment-badge">{{selectedProduction.paymentStatus || 'N/A' | titlecase}}</span>
+            </div>
+            <div class="detail-item">
+              <strong>Unit Price:</strong> 
+              {{formatCurrency((selectedProduction.price || 0) / selectedProduction.quantity)}}/{{selectedProduction.unit}}
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Location & Notes</h4>
+            <div class="detail-item">
+              <strong>Farm Location:</strong> {{selectedProduction.location?.farmLocation || 'N/A'}}
+            </div>
+            <div *ngIf="selectedProduction.notes" class="detail-item">
+              <strong>Notes:</strong> {{selectedProduction.notes}}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="openEditProductionModal(selectedProduction)">
+          <app-edit-icon></app-edit-icon>
+          <span>Edit Production</span>
+        </button>
+        <button class="btn btn-primary" (click)="closeModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Production Modal -->
+  <div *ngIf="showDeleteProductionModal && selectedProduction" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Deletion</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="warning-icon">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <h4>Are you sure you want to delete this production record?</h4>
+        <p>This will permanently delete <strong>{{selectedProduction.productionNumber}}</strong>.</p>
+        <p class="warning-text">This action cannot be undone. All associated data will be lost.</p>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="deleteProduction()">
+          Delete Production
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Stock Modal -->
+  <div *ngIf="showAddStockModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add Stock Item</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="stockForm" (ngSubmit)="addStock()">
+        <div class="modal-body">
+          <div class="form-section">
+            <h4>Product Information</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Product Type *</label>
+                <select formControlName="productType">
+                  <option value="">Select Type</option>
+                  <option *ngFor="let type of productTypes" [value]="type">{{type}}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Category *</label>
+                <select formControlName="category">
+                  <option *ngFor="let category of categories" [value]="category">{{category | titlecase}}</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Product Name *</label>
+                <input type="text" formControlName="productName" placeholder="Enter product name">
+              </div>
+              <div class="form-group">
+                <label>Batch Number</label>
+                <input type="text" formControlName="batchNumber" placeholder="Enter batch number">
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Supplier</label>
+                <input type="text" formControlName="supplier" placeholder="Enter supplier name">
+              </div>
+              <div class="form-group">
+                <label>Warehouse *</label>
+                <select formControlName="warehouseLocation">
+                  <option value="">Select Warehouse</option>
+                  <option *ngFor="let warehouse of warehouses" [value]="warehouse">{{warehouse}}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-section">
+            <h4>Quantity & Stock Levels</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Quantity *</label>
+                <input type="number" formControlName="quantity" placeholder="0" step="0.1" min="0">
+              </div>
+              <div class="form-group">
+                <label>Unit *</label>
+                <select formControlName="unit">
+                  <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Minimum Stock Level *</label>
+                <input type="number" formControlName="minStockLevel" placeholder="0" min="0">
+              </div>
+              <div class="form-group">
+                <label>Maximum Stock Level *</label>
+                <input type="number" formControlName="maxStockLevel" placeholder="0" min="0">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Value (₦)</label>
+              <input type="number" formControlName="value" placeholder="0" min="0">
+            </div>
+          </div>
+          
+          <div class="form-section">
+            <h4>Storage Information</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Shelf Life</label>
+                <input type="date" formControlName="shelfLife">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Storage Conditions</label>
+              <div class="form-row">
+                <div class="form-group">
+                  <input type="text" formControlName="storageConditions.temperature" placeholder="Temperature">
+                </div>
+                <div class="form-group">
+                  <input type="text" formControlName="storageConditions.humidity" placeholder="Humidity">
+                </div>
+              </div>
+              <div class="form-group">
+                <textarea formControlName="storageConditions.specialNotes" 
+                          placeholder="Special storage notes..." rows="2"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Add Stock Item
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Stock Modal -->
+  <div *ngIf="showViewStockModal && selectedStock" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content view-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Stock Details</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="detail-header">
+          <div class="detail-title">
+            <h2>{{selectedStock.productName}}</h2>
+            <div class="detail-subtitle">{{selectedStock.productType}} | {{selectedStock.category | titlecase}}</div>
+          </div>
+          <div class="detail-status">
+            <span class="quality-badge" [class]="getStockStatusClass(selectedStock.qualityStatus)">
+              {{selectedStock.qualityStatus | titlecase}}
+            </span>
+            <span class="warehouse-badge">{{selectedStock.warehouseLocation}}</span>
+          </div>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-section">
+            <h4>Stock Information</h4>
+            <div class="detail-item">
+              <strong>Current Quantity:</strong> {{formatQuantity(selectedStock.quantity, selectedStock.unit)}}
+            </div>
+            <div class="detail-item">
+              <strong>Stock Level:</strong> 
+              <div class="level-bar-small">
+                <div class="level-fill" [class]="getStockLevelClass(selectedStock)" 
+                     [style.width.%]="(selectedStock.quantity / selectedStock.maxStockLevel) * 100">
+                </div>
+              </div>
+              {{((selectedStock.quantity / selectedStock.maxStockLevel) * 100).toFixed(1)}}%
+            </div>
+            <div class="detail-item">
+              <strong>Min/Max Levels:</strong> {{selectedStock.minStockLevel}} / {{selectedStock.maxStockLevel}} {{selectedStock.unit}}
+            </div>
+            <div class="detail-item">
+              <strong>Last Updated:</strong> {{formatDate(selectedStock.lastUpdated)}}
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Storage Details</h4>
+            <div class="detail-item">
+              <strong>Warehouse:</strong> {{selectedStock.warehouseLocation}}
+            </div>
+            <div *ngIf="selectedStock.shelfLife" class="detail-item">
+              <strong>Shelf Life:</strong> {{formatDate(selectedStock.shelfLife)}}
+              ({{getDaysUntil(selectedStock.shelfLife)}} days left)
+            </div>
+            <div *ngIf="selectedStock.supplier" class="detail-item">
+              <strong>Supplier:</strong> {{selectedStock.supplier}}
+            </div>
+            <div *ngIf="selectedStock.batchNumber" class="detail-item">
+              <strong>Batch Number:</strong> {{selectedStock.batchNumber}}
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Financial</h4>
+            <div class="detail-item">
+              <strong>Total Value:</strong> {{formatCurrency(selectedStock.value || 0)}}
+            </div>
+            <div class="detail-item">
+              <strong>Unit Value:</strong> 
+              {{formatCurrency((selectedStock.value || 0) / selectedStock.quantity)}}/{{selectedStock.unit}}
+            </div>
+          </div>
+
+          <div class="detail-section">
+  <h4>Storage Conditions</h4>
+  <div *ngIf="selectedStock?.storageConditions?.temperature" class="detail-item">
+    <strong>Temperature:</strong> {{selectedStock!.storageConditions!.temperature}}
+  </div>
+  <div *ngIf="selectedStock?.storageConditions?.humidity" class="detail-item">
+    <strong>Humidity:</strong> {{selectedStock!.storageConditions!.humidity}}
+  </div>
+  <div *ngIf="selectedStock?.storageConditions?.specialNotes" class="detail-item">
+    <strong>Special Notes:</strong> {{selectedStock!.storageConditions!.specialNotes}}
+  </div>
+</div>
+        </div>
+
+        <!-- Stock Movements -->
+        <div class="detail-section full-width">
+          <h4>Recent Stock Movements</h4>
+          <div class="movements-list">
+            <div *ngFor="let movement of stockMovements" class="movement-item">
+              <div class="movement-date">{{formatDate(movement.createdAt)}}</div>
+              <div class="movement-type" [class]="'type-' + movement.movementType">
+                {{movement.movementType | titlecase}}
+              </div>
+              <div class="movement-quantity">{{movement.quantity}} {{movement.unit}}</div>
+              <div class="movement-reason">{{movement.reason || 'N/A'}}</div>
+              <div class="movement-by">{{movement.createdBy}}</div>
+            </div>
+            <div *ngIf="stockMovements.length === 0" class="no-movements">
+              No stock movements recorded
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="openStockMovementModal(selectedStock)">
+          <app-truck-icon></app-truck-icon>
+          <span>Record Movement</span>
+        </button>
+        <button class="btn btn-outline" (click)="openEditStockModal(selectedStock)">
+          <app-edit-icon></app-edit-icon>
+          <span>Edit Stock</span>
+        </button>
+        <button class="btn btn-primary" (click)="closeModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Movement Modal -->
+  <div *ngIf="showStockMovementModal && selectedStock" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Record Stock Movement</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="movementForm" (ngSubmit)="recordMovement()">
+        <div class="modal-body">
+          <div class="form-section">
+            <h4>Movement Details</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Product</label>
+                <input type="text" [value]="selectedStock.productName" disabled>
+              </div>
+              <div class="form-group">
+                <label>Movement Type *</label>
+                <select formControlName="movementType">
+                  <option *ngFor="let type of movementTypes" [value]="type">{{type | titlecase}}</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Quantity *</label>
+                <input type="number" formControlName="quantity" placeholder="0" step="0.1" min="0">
+              </div>
+              <div class="form-group">
+                <label>Unit</label>
+                <input type="text" [value]="selectedStock.unit" disabled>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>From Location</label>
+                <input type="text" formControlName="fromLocation" 
+                       [placeholder]="selectedStock.warehouseLocation">
+              </div>
+              <div class="form-group">
+                <label>To Location</label>
+                <input type="text" formControlName="toLocation" 
+                       [placeholder]="'Enter destination'">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Reason</label>
+              <input type="text" formControlName="reason" placeholder="Enter reason for movement">
+            </div>
+            
+            <div class="form-group">
+              <label>Reference Number</label>
+              <input type="text" formControlName="referenceNumber" placeholder="e.g., PO-2024-001">
+            </div>
+            
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea formControlName="notes" placeholder="Additional notes..." rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Record Movement
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Filters Modal -->
+  <div *ngIf="showFiltersModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content filters-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Filter {{ activeView === 'production' ? 'Productions' : 'Stock' }}</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div *ngIf="activeView === 'production'" class="filter-group">
+          <h4>Status</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="productionFilters.status" value="">
+              <span>All Status</span>
+            </label>
+            <label *ngFor="let status of statuses" class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="productionFilters.status" [value]="status">
+              <span class="status-badge" [class]="getStatusClass(status)">
+                {{status | titlecase}}
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div *ngIf="activeView === 'production'" class="filter-group">
+          <h4>Product Type</h4>
+          <select [(ngModel)]="productionFilters.productType" class="filter-select">
+            <option value="">All Products</option>
+            <option *ngFor="let type of productTypes" [value]="type">{{type}}</option>
+          </select>
+        </div>
+
+        <div *ngIf="activeView === 'stock'" class="filter-group">
+          <h4>Category</h4>
+          <select [(ngModel)]="stockFilters.category" class="filter-select">
+            <option value="">All Categories</option>
+            <option *ngFor="let category of categories" [value]="category">{{category | titlecase}}</option>
+          </select>
+        </div>
+
+        <div *ngIf="activeView === 'stock'" class="filter-group">
+          <h4>Warehouse</h4>
+          <select [(ngModel)]="stockFilters.warehouse" class="filter-select">
+            <option value="">All Warehouses</option>
+            <option *ngFor="let warehouse of warehouses" [value]="warehouse">{{warehouse}}</option>
+          </select>
+        </div>
+
+        <div *ngIf="activeView === 'stock'" class="filter-group">
+          <h4>Alerts</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="checkbox" [(ngModel)]="stockFilters.lowStock">
+              <span>Show Low Stock Only</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" [(ngModel)]="stockFilters.expiringSoon">
+              <span>Show Expiring Soon</span>
+            </label>
+          </div>
+        </div>
+
+        <div *ngIf="activeView === 'production'" class="filter-group">
+          <h4>Quantity Range</h4>
+          <div class="range-inputs">
+            <input type="number" [(ngModel)]="productionFilters.minQuantity" placeholder="Min" min="0">
+            <span>to</span>
+            <input type="number" [(ngModel)]="productionFilters.maxQuantity" placeholder="Max" min="0">
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">
+          Clear All
+        </button>
+        <button type="button" class="btn btn-primary" (click)="applyFilters()">
+          Apply Filters
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

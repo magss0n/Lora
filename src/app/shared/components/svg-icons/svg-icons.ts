@@ -625,6 +625,109 @@ export class UploadIcon {}
 })
 export class FileIcon {}
 
+// Add these to your existing SVG_ICONS array
+
+// Bar Chart Icon
+@Component({
+  selector: 'app-bar-chart-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="20" x2="12" y2="10"></line>
+      <line x1="18" y1="20" x2="18" y2="4"></line>
+      <line x1="6" y1="20" x2="6" y2="16"></line>
+    </svg>
+  `
+})
+export class BarChartIcon {}
+
+// Warehouse Icon
+@Component({
+  selector: 'app-warehouse-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22V12"></path>
+      <path d="M2 8l10-6 10 6v12H2z"></path>
+      <path d="M17 12h1"></path>
+      <path d="M22 18v2"></path>
+      <path d="M2 18v2"></path>
+      <path d="M7 12h1"></path>
+    </svg>
+  `
+})
+export class WarehouseIcon {}
+
+// Scale Icon
+@Component({
+  selector: 'app-scale-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 6h18"></path>
+      <path d="M3 12h18"></path>
+      <path d="M3 18h18"></path>
+    </svg>
+  `
+})
+export class ScaleIcon {}
+
+// Calendar Icon
+@Component({
+  selector: 'app-calendar-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="16" y1="2" x2="16" y2="6"></line>
+      <line x1="8" y1="2" x2="8" y2="6"></line>
+      <line x1="3" y1="10" x2="21" y2="10"></line>
+    </svg>
+  `
+})
+export class CalendarIcon {}
+
+// Tag Icon
+@Component({
+  selector: 'app-tag-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+      <line x1="7" y1="7" x2="7.01" y2="7"></line>
+    </svg>
+  `
+})
+export class TagIcon {}
+
+// Truck Icon
+@Component({
+  selector: 'app-truck-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="1" y="3" width="15" height="13"></rect>
+      <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+      <circle cx="5.5" cy="18.5" r="2.5"></circle>
+      <circle cx="18.5" cy="18.5" r="2.5"></circle>
+    </svg>
+  `
+})
+export class TruckIcon {}
+
+// Refresh Icon
+@Component({
+  selector: 'app-refresh-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <polyline points="1 20 1 14 7 14"></polyline>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+    </svg>
+  `
+})
+export class RefreshIcon {}
  
 // Export all icons
 export const SVG_ICONS = [
@@ -675,5 +778,12 @@ export const SVG_ICONS = [
   QrIcon,
   DownloadIcon,
   UploadIcon,
-  FileIcon
+  FileIcon,
+  BarChartIcon,
+  WarehouseIcon,
+  ScaleIcon,
+  CalendarIcon,
+  TagIcon,
+  TruckIcon,
+  RefreshIcon
 ];
