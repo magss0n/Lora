@@ -1,1 +1,1109 @@
-<p>credit-management works!</p>
+<div class="credit-management">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <!-- Total Credits Issued -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon primary">
+          <app-dollar-icon></app-dollar-icon>
+        </div>
+        <div class="stat-trend positive">+12%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Credits Issued</h3>
+        <div class="value">{{formatCurrency(stats.totalIssued)}}</div>
+        <div class="stat-change positive">
+          <span>From last month</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outstanding Balance -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon warning">
+          <app-credit-icon></app-credit-icon>
+        </div>
+        <div class="stat-trend negative">-5%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Outstanding Balance</h3>
+        <div class="value">{{formatCurrency(stats.outstandingBalance)}}</div>
+        <div class="stat-change negative">
+          <span>Active loans</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Repayment Rate -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon success">
+          <app-check-circle-icon></app-check-circle-icon>
+        </div>
+        <div class="stat-trend positive">+3%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Repayment Rate</h3>
+        <div class="value">{{stats.repaymentRate}}%</div>
+        <div class="stat-change positive">
+          <span>On-time payments</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Defaulters -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon danger">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <div class="stat-trend negative">+2%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Defaulters</h3>
+        <div class="value">{{stats.defaultersCount}}</div>
+        <div class="stat-change negative">
+          <span>Need follow-up</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="content-card">
+    <!-- Tabs Navigation -->
+    <div class="tabs-navigation">
+      <button class="tab-btn" [class.active]="activeTab === 'loans'" (click)="activeTab = 'loans'">
+        Active Loans
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'applications'" (click)="activeTab = 'applications'">
+        Applications ({{loanApplications.length}})
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'payments'" (click)="activeTab = 'payments'">
+        Recent Payments
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'analytics'" (click)="activeTab = 'analytics'">
+        Analytics
+      </button>
+    </div>
+
+    <!-- Active Loans Tab -->
+    <div *ngIf="activeTab === 'loans'" class="tab-content">
+      <div class="card-header">
+        <h2 class="card-title">Active Loans</h2>
+        
+        <!-- Actions Toolbar -->
+        <div class="action-toolbar">
+          <!-- Search -->
+          <div class="search-box">
+            <app-search-icon></app-search-icon>
+            <input 
+              type="text" 
+              [(ngModel)]="searchQuery" 
+              (keyup.enter)="onSearch()"
+              placeholder="Search by farmer, loan ID..."
+            >
+            <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()">
+              <app-x-circle-icon></app-x-circle-icon>
+            </button>
+          </div>
+
+          <!-- Filter Button -->
+          <button class="btn btn-outline" (click)="showFiltersModal = true">
+            <app-filter-icon></app-filter-icon>
+            <span>Filter</span>
+          </button>
+
+          <!-- Primary Actions -->
+          <button class="btn btn-primary" (click)="openLoanApplicationModal()">
+            <app-plus-icon></app-plus-icon>
+            <span>New Application</span>
+          </button>
+
+          <!-- Bulk Actions -->
+          <div class="dropdown">
+            <button class="btn btn-outline">
+              <app-download-icon></app-download-icon>
+              <span>Bulk Actions</span>
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" (click)="openBulkPaymentModal()">
+                <app-receipt-icon></app-receipt-icon>
+                <span>Bulk Payments</span>
+              </button>
+              <button class="dropdown-item" (click)="generateCreditReport()">
+                <app-file-icon></app-file-icon>
+                <span>Generate Report</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loans Table -->
+      <div class="table-container">
+        <table class="loans-table">
+          <thead>
+            <tr>
+              <th>Loan Details</th>
+              <th>Farmer Info</th>
+              <th>Financials</th>
+              <th>Status</th>
+              <th>Timeline</th>
+              <th class="actions-column">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let credit of filteredCredits" class="loan-row">
+              <!-- Loan Details -->
+              <td class="loan-details">
+                <div class="loan-id">{{credit.loanId}}</div>
+                <div class="loan-type">{{credit.loanType | titlecase}} Loan</div>
+                <div class="loan-purpose">{{credit.purpose || 'General Agriculture'}}</div>
+                <div class="loan-dates">
+                  <span>Issued: {{formatDate(credit.disbursementDate)}}</span>
+                  <span>Due: {{formatDate(credit.dueDate)}}</span>
+                </div>
+              </td>
+
+              <!-- Farmer Info -->
+              <td class="farmer-info">
+                <div class="farmer-name">{{credit.farmerName}}</div>
+                <div class="farmer-id">ID: {{credit.farmerId}}</div>
+                <div class="risk-level">
+                  <span class="risk-badge" [class]="getRiskClass(credit.riskLevel)">
+                    {{credit.riskLevel | titlecase}} Risk
+                  </span>
+                </div>
+              </td>
+
+              <!-- Financials -->
+              <td class="financial-info">
+                <div class="financial-item">
+                  <strong>Principal:</strong> {{formatCurrency(credit.principalAmount)}}
+                </div>
+                <div class="financial-item">
+                  <strong>Balance:</strong> {{formatCurrency(credit.outstandingBalance)}}
+                </div>
+                <div class="financial-item">
+                  <strong>Interest:</strong> {{credit.interestRate}}%
+                </div>
+                <div class="financial-item">
+                  <strong>Term:</strong> {{credit.termMonths}} months
+                </div>
+              </td>
+
+              <!-- Status -->
+              <td class="status-info">
+                <div class="status-badge" [class]="getStatusClass(credit.status)">
+                  {{credit.status | titlecase}}
+                </div>
+                <div class="repayment-rate">
+                  <strong>Repayment:</strong> {{credit.repaymentRate || 0}}%
+                </div>
+                <div class="remaining-months">
+                  <strong>Remaining:</strong> {{calculateRemainingMonths(credit.dueDate)}} months
+                </div>
+              </td>
+
+              <!-- Timeline -->
+              <td class="timeline-info">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="(credit.termMonths - calculateRemainingMonths(credit.dueDate)) / credit.termMonths * 100"></div>
+                </div>
+                <div class="timeline-dates">
+                  <span>Start: {{formatDate(credit.disbursementDate)}}</span>
+                  <span>End: {{formatDate(credit.dueDate)}}</span>
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td class="actions-cell">
+                <div class="action-buttons">
+                  <button class="action-btn view-btn" (click)="openCreditDetailsModal(credit)" title="View Details">
+                    <app-eye-icon></app-eye-icon>
+                  </button>
+                  <button class="action-btn payment-btn" (click)="openPaymentModal(credit)" title="Record Payment">
+                    <app-dollar-icon></app-dollar-icon>
+                  </button>
+                  <button class="action-btn schedule-btn" (click)="openRepaymentScheduleModal(credit)" title="Schedule">
+                    <app-calendar-icon></app-calendar-icon>
+                  </button>
+                  <button class="action-btn reminder-btn" (click)="sendPaymentReminder(credit)" title="Send Reminder">
+                    <app-mail-icon></app-mail-icon>
+                  </button>
+                  <button class="action-btn delete-btn" (click)="openDeleteModal(credit)" title="Delete">
+                    <app-trash-icon></app-trash-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredCredits.length === 0" class="empty-state">
+          <app-credit-icon></app-credit-icon>
+          <p>No loans found</p>
+          <button class="btn btn-primary" (click)="openLoanApplicationModal()">
+            <app-plus-icon></app-plus-icon>
+            <span>Create First Loan</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="totalPages > 1" class="pagination">
+        <button class="pagination-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+          Previous
+        </button>
+        
+        <div class="page-numbers">
+          <button *ngFor="let page of getPageNumbers()" 
+                  class="page-number" 
+                  [class.active]="page === currentPage"
+                  (click)="goToPage(page)">
+            {{page}}
+          </button>
+        </div>
+        
+        <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+          Next
+        </button>
+        
+        <div class="page-info">
+          Showing {{(currentPage - 1) * itemsPerPage + 1}}-{{getEndIndex()}} of {{totalItems}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Applications Tab -->
+    <div *ngIf="activeTab === 'applications'" class="tab-content">
+      <div class="card-header">
+        <h2 class="card-title">Loan Applications</h2>
+        <button class="btn btn-primary" (click)="openLoanApplicationModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>New Application</span>
+        </button>
+      </div>
+
+      <div class="applications-grid">
+        <div *ngFor="let application of loanApplications" class="application-card">
+          <div class="application-header">
+            <div class="app-id">{{application.applicationNumber}}</div>
+            <div class="app-status" [class]="getStatusClass(application.status)">
+              {{application.status | titlecase}}
+            </div>
+          </div>
+          
+          <div class="application-body">
+            <div class="applicant-info">
+              <div class="applicant-name">{{application.applicantName}}</div>
+              <div class="applicant-id">Farmer ID: {{application.farmerId}}</div>
+            </div>
+            
+            <div class="application-details">
+              <div class="detail-item">
+                <strong>Amount:</strong> {{formatCurrency(application.requestedAmount)}}
+              </div>
+              <div class="detail-item">
+                <strong>Purpose:</strong> {{application.purpose}}
+              </div>
+              <div class="detail-item">
+                <strong>Term:</strong> {{application.termMonths}} months
+              </div>
+              <div class="detail-item">
+                <strong>Submitted:</strong> {{formatDate(application.submissionDate)}}
+              </div>
+            </div>
+          </div>
+          
+          <div class="application-footer">
+            <button class="btn btn-outline" (click)="openReviewModal(application)" 
+                    *ngIf="application.status === 'pending'">
+              <app-eye-icon></app-eye-icon>
+              Review
+            </button>
+            <button class="btn btn-text" (click)="viewApplicationDetails(application)" 
+        *ngIf="application.status === 'approved'">
+  View Loan
+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payments Tab -->
+<div *ngIf="activeTab === 'payments'" class="tab-content">
+  <div class="card-header">
+    <h2 class="card-title">Recent Payments</h2>
+    <button class="btn btn-primary" (click)="openPaymentModal()">
+      <app-plus-icon></app-plus-icon>
+      <span>Record Payment</span>
+    </button>
+  </div>
+
+  <div class="table-container payments-table"> 
+        <table>
+          <thead>
+            <tr>
+              <th>Payment Details</th>
+              <th>Loan Info</th>
+              <th>Farmer</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let payment of payments">
+              <td>
+                <div class="payment-id">{{payment.referenceNumber}}</div>
+                <div class="payment-date">{{formatDate(payment.paymentDate)}}</div>
+                <div class="payment-method">{{payment.paymentMethod | titlecase}}</div>
+              </td>
+              <td>
+                <div class="loan-id">{{payment.loanId}}</div>
+                <div class="payment-type">{{payment.paymentType | titlecase}}</div>
+              </td>
+              <td>
+                <div class="farmer-name">{{payment.farmerName}}</div>
+                <div class="farmer-id">{{payment.farmerId}}</div>
+              </td>
+              <td class="payment-amount">{{formatCurrency(payment.amount)}}</td>
+              <td>
+                <span class="status-badge" [class]="getStatusClass(payment.status)">
+                  {{payment.status | titlecase}}
+                </span>
+              </td>
+              <td>
+                <button class="action-btn view-btn" (click)="viewPaymentDetails(payment)">
+  <app-eye-icon></app-eye-icon>
+</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div *ngIf="activeTab === 'analytics'" class="tab-content">
+  <div class="analytics-grid"> 
+        <!-- Repayment Chart -->
+        <div class="analytics-card">
+          <h3>Repayment Performance</h3>
+          <div class="chart-placeholder">
+            <div class="chart-icon">
+              <app-bar-chart-icon></app-bar-chart-icon>
+            </div>
+            <p>Repayment rate chart will be displayed here</p>
+          </div>
+        </div>
+
+        <!-- Risk Distribution -->
+        <div class="analytics-card">
+          <h3>Risk Distribution</h3>
+          <div class="risk-distribution">
+            <div class="risk-item low">
+              <div class="risk-label">Low Risk</div>
+              <div class="risk-percentage">45%</div>
+            </div>
+            <div class="risk-item medium">
+              <div class="risk-label">Medium Risk</div>
+              <div class="risk-percentage">35%</div>
+            </div>
+            <div class="risk-item high">
+              <div class="risk-label">High Risk</div>
+              <div class="risk-percentage">20%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Defaulters -->
+        <div class="analytics-card">
+          <h3>Top Defaulters</h3>
+          <div class="defaulters-list">
+            <div *ngFor="let defaulter of getDefaulters()" class="defaulter-item">
+              <div class="defaulter-name">{{defaulter.name}}</div>
+              <div class="defaulter-amount">{{formatCurrency(defaulter.amount)}}</div>
+              <div class="defaulter-days">{{defaulter.days}} days overdue</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interest Analysis -->
+        <div class="analytics-card">
+          <h3>Interest Analysis</h3>
+          <div class="interest-stats">
+            <div class="stat-item">
+              <div class="stat-label">Average Rate</div>
+              <div class="stat-value">{{stats.avgInterestRate}}%</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Total Interest</div>
+              <div class="stat-value">{{formatCurrency(stats.totalIssued * stats.avgInterestRate / 100)}}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Highest Rate</div>
+              <div class="stat-value">18%</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Lowest Rate</div>
+              <div class="stat-value">8%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+
+  <!-- Credit Details Modal -->
+  <div *ngIf="showCreditDetailsModal && selectedCredit" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content view-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Loan Details</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Loan Header -->
+        <div class="loan-header">
+          <div class="loan-icon">
+            <app-credit-icon></app-credit-icon>
+          </div>
+          <div class="loan-info">
+            <h2>{{selectedCredit.loanId}}</h2>
+            <div class="loan-status">
+              <span class="status-badge" [class]="getStatusClass(selectedCredit.status)">
+                {{selectedCredit.status | titlecase}}
+              </span>
+              <span class="risk-badge" [class]="getRiskClass(selectedCredit.riskLevel)">
+                {{selectedCredit.riskLevel | titlecase}} Risk
+              </span>
+            </div>
+          </div>
+          <div class="loan-amount">
+            <div class="amount-label">Outstanding Balance</div>
+            <div class="amount-value">{{formatCurrency(selectedCredit.outstandingBalance)}}</div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="profile-tabs">
+          <div class="tab" [class.active]="activeCreditTab === 'details'" (click)="activeCreditTab = 'details'">
+            Loan Details
+          </div>
+          <div class="tab" [class.active]="activeCreditTab === 'payments'" (click)="activeCreditTab = 'payments'">
+            Payment History
+          </div>
+          <div class="tab" [class.active]="activeCreditTab === 'farmer'" (click)="activeCreditTab = 'farmer'">
+            Farmer Info
+          </div>
+          <div class="tab" [class.active]="activeCreditTab === 'documents'" (click)="activeCreditTab = 'documents'">
+            Documents
+          </div>
+        </div>
+
+        <!-- Loan Details Tab -->
+        <div class="tab-content" *ngIf="activeCreditTab === 'details'">
+          <div class="info-grid">
+            <div class="info-section">
+              <h4>Loan Information</h4>
+              <div class="info-item">
+                <strong>Loan ID:</strong> {{selectedCredit.loanId}}
+              </div>
+              <div class="info-item">
+                <strong>Loan Type:</strong> {{selectedCredit.loanType | titlecase}}
+              </div>
+              <div class="info-item">
+                <strong>Purpose:</strong> {{selectedCredit.purpose}}
+              </div>
+              <div class="info-item">
+                <strong>Disbursement Date:</strong> {{formatDate(selectedCredit.disbursementDate)}}
+              </div>
+              <div class="info-item">
+                <strong>Due Date:</strong> {{formatDate(selectedCredit.dueDate)}}
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Financial Details</h4>
+              <div class="info-item">
+                <strong>Principal Amount:</strong> {{formatCurrency(selectedCredit.principalAmount)}}
+              </div>
+              <div class="info-item">
+                <strong>Outstanding Balance:</strong> {{formatCurrency(selectedCredit.outstandingBalance)}}
+              </div>
+              <div class="info-item">
+                <strong>Interest Rate:</strong> {{selectedCredit.interestRate}}%
+              </div>
+              <div class="info-item">
+                <strong>Term:</strong> {{selectedCredit.termMonths}} months
+              </div>
+              <div class="info-item">
+                <strong>Monthly Payment:</strong> {{formatCurrency(selectedCredit.monthlyPayment || 0)}}
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Collateral Information</h4>
+              <div class="info-item">
+                <strong>Collateral Type:</strong> {{selectedCredit.collateralType || 'None'}}
+              </div>
+              <div class="info-item">
+                <strong>Collateral Value:</strong> {{formatCurrency(selectedCredit.collateralValue || 0)}}
+              </div>
+              <div class="info-item">
+                <strong>Loan-to-Value Ratio:</strong> {{calculateLTV(selectedCredit)}}%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment History Tab -->
+        <div class="tab-content" *ngIf="activeCreditTab === 'payments'">
+          <div class="payment-history">
+            <div class="payment-summary">
+              <div class="summary-item">
+                <strong>Total Paid:</strong> {{formatCurrency(selectedCredit.principalAmount - selectedCredit.outstandingBalance)}}
+              </div>
+              <div class="summary-item">
+                <strong>Remaining Balance:</strong> {{formatCurrency(selectedCredit.outstandingBalance)}}
+              </div>
+              <div class="summary-item">
+                <strong>Repayment Rate:</strong> {{selectedCredit.repaymentRate || 0}}%
+              </div>
+            </div>
+            
+            <div class="payments-list">
+              <div class="payment-item" *ngFor="let payment of getPaymentHistory(selectedCredit)">
+                <div class="payment-date">{{payment.date}}</div>
+                <div class="payment-amount">{{formatCurrency(payment.amount)}}</div>
+                <div class="payment-method">{{payment.method || 'Cash'}}</div>
+                <div class="payment-status" [class]="payment.status">{{payment.status}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="openRepaymentScheduleModal(selectedCredit)">
+          <app-calendar-icon></app-calendar-icon>
+          <span>View Schedule</span>
+        </button>
+        <button class="btn btn-outline" (click)="sendPaymentReminder(selectedCredit)">
+          <app-mail-icon></app-mail-icon>
+          <span>Send Reminder</span>
+        </button>
+        <button class="btn btn-primary" (click)="openPaymentModal(selectedCredit)">
+          <app-dollar-icon></app-dollar-icon>
+          <span>Record Payment</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loan Application Modal -->
+  <div *ngIf="showLoanApplicationModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>New Loan Application</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="loanApplicationForm" (ngSubmit)="submitLoanApplication()">
+        <div class="modal-body">
+          <div class="form-section">
+            <h4>Applicant Information</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Farmer ID *</label>
+                <input type="text" formControlName="farmerId" placeholder="Enter farmer ID">
+                <button type="button" class="btn btn-text" (click)="searchFarmer()">Search</button>
+              </div>
+              <div class="form-group">
+                <label>Applicant Name *</label>
+                <input type="text" formControlName="applicantName" placeholder="Full name">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Loan Details</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Requested Amount (₦) *</label>
+                <input type="number" formControlName="requestedAmount" placeholder="0" min="1000">
+              </div>
+              <div class="form-group">
+                <label>Purpose *</label>
+                <select formControlName="purpose">
+                  <option value="">Select Purpose</option>
+                  <option value="seeds">Seeds Purchase</option>
+                  <option value="fertilizer">Fertilizer</option>
+                  <option value="equipment">Equipment</option>
+                  <option value="expansion">Farm Expansion</option>
+                  <option value="irrigation">Irrigation System</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Term (months) *</label>
+                <select formControlName="termMonths">
+                  <option value="">Select Term</option>
+                  <option value="3">3 months</option>
+                  <option value="6">6 months</option>
+                  <option value="12">12 months</option>
+                  <option value="24">24 months</option>
+                  <option value="36">36 months</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Repayment Plan *</label>
+                <select formControlName="repaymentPlan">
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="seasonal">Seasonal</option>
+                  <option value="bulk">Bulk Payment</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Collateral Information (Optional)</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Collateral Type</label>
+                <select formControlName="collateralType">
+                  <option value="">Select Type</option>
+                  <option value="land">Land Title</option>
+                  <option value="equipment">Farm Equipment</option>
+                  <option value="building">Building/Structure</option>
+                  <option value="vehicle">Vehicle</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Estimated Value (₦)</label>
+                <input type="number" formControlName="collateralValue" placeholder="0" min="0">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Supporting Documents</h4>
+            <div class="form-group">
+              <label>Income Proof</label>
+              <input type="file" accept=".pdf,.jpg,.png">
+            </div>
+            <div class="form-group">
+              <label>Business Plan (if applicable)</label>
+              <input type="file" accept=".pdf,.doc,.docx">
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="loanApplicationForm.invalid">
+            Submit Application
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Payment Modal -->
+  <div *ngIf="showPaymentModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Record Payment</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="paymentForm" (ngSubmit)="processPayment()">
+        <div class="modal-body">
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Loan ID *</label>
+                <input type="text" formControlName="creditId" placeholder="Enter loan ID">
+              </div>
+              <div class="form-group">
+                <label>Farmer Name *</label>
+                <input type="text" formControlName="farmerName" placeholder="Farmer name">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Amount (₦) *</label>
+                <input type="number" formControlName="amount" placeholder="0" min="1">
+              </div>
+              <div class="form-group">
+                <label>Payment Date *</label>
+                <input type="date" formControlName="paymentDate">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Payment Method *</label>
+                <select formControlName="paymentMethod">
+                  <option value="cash">Cash</option>
+                  <option value="bank">Bank Transfer</option>
+                  <option value="mobile">Mobile Money</option>
+                  <option value="cheque">Cheque</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Reference Number</label>
+                <input type="text" formControlName="referenceNumber" placeholder="Optional">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Late Fee (₦)</label>
+                <input type="number" formControlName="lateFee" placeholder="0" min="0">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea formControlName="notes" placeholder="Any additional notes..." rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="paymentForm.invalid || isProcessingPayment">
+            {{isProcessingPayment ? 'Processing...' : 'Record Payment'}}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Review Application Modal -->
+  <div *ngIf="showReviewModal && selectedApplication" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Review Loan Application</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="application-review">
+          <div class="review-header">
+            <h4>{{selectedApplication.applicationNumber}}</h4>
+            <div class="applicant-name">{{selectedApplication.applicantName}}</div>
+          </div>
+          
+          <div class="review-details">
+            <div class="detail-item">
+              <strong>Requested Amount:</strong> {{formatCurrency(selectedApplication.requestedAmount)}}
+            </div>
+            <div class="detail-item">
+              <strong>Purpose:</strong> {{selectedApplication.purpose}}
+            </div>
+            <div class="detail-item">
+              <strong>Term:</strong> {{selectedApplication.termMonths}} months
+            </div>
+            <div class="detail-item">
+              <strong>Collateral:</strong> {{selectedApplication.collateralType || 'None'}}
+            </div>
+            <div class="detail-item">
+              <strong>Submitted:</strong> {{formatDate(selectedApplication.submissionDate)}}
+            </div>
+          </div>
+          
+          <div class="risk-assessment">
+            <h5>Risk Assessment</h5>
+            <div class="assessment-factors">
+              <div class="factor">Credit Score: 75/100</div>
+              <div class="factor">Repayment History: Good</div>
+              <div class="factor">Collateral Coverage: 120%</div>
+              <div class="factor">Recommended Interest: 12%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="rejectApplication()">
+          Reject
+        </button>
+        <button type="button" class="btn btn-primary" (click)="approveApplication()">
+          Approve
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteModal && selectedCredit" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Deletion</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="warning-icon">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <h4>Are you sure you want to delete this loan?</h4>
+        <p>This will permanently delete the loan record for <strong>{{selectedCredit.farmerName}}</strong>.</p>
+        <p class="warning-text">This action cannot be undone. All associated data will be lost.</p>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="deleteCredit()">
+          Delete Loan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Modal -->
+  <div *ngIf="showFiltersModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content filters-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Filter Loans</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="filter-group">
+          <h4>Status</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="all">
+              <span>All Status</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="active">
+              <span class="status-badge status-active">Active</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="overdue">
+              <span class="status-badge status-overdue">Overdue</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="paid">
+              <span class="status-badge status-paid">Paid</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Loan Type</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" value="all">
+              <span>All Types</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" value="regular">
+              <span>Regular</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" value="emergency">
+              <span>Emergency</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" value="equipment">
+              <span>Equipment</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Risk Level</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="risk" [(ngModel)]="riskFilter" value="all">
+              <span>All Levels</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="risk" [(ngModel)]="riskFilter" value="low">
+              <span class="risk-badge risk-low">Low</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="risk" [(ngModel)]="riskFilter" value="medium">
+              <span class="risk-badge risk-medium">Medium</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="risk" [(ngModel)]="riskFilter" value="high">
+              <span class="risk-badge risk-high">High</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">
+          Clear All
+        </button>
+        <button type="button" class="btn btn-primary" (click)="applyFilters(); showFiltersModal = false">
+          Apply Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Repayment Schedule Modal -->
+  <div *ngIf="showRepaymentScheduleModal && selectedCredit" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Repayment Schedule</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="schedule-header">
+          <div class="loan-info">
+            <strong>Loan:</strong> {{selectedCredit.loanId}}
+          </div>
+          <div class="total-amount">
+            <strong>Total:</strong> {{formatCurrency(selectedCredit.principalAmount)}}
+          </div>
+        </div>
+        
+        <div class="schedule-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Installment</th>
+                <th>Due Date</th>
+                <th>Principal</th>
+                <th>Interest</th>
+                <th>Total</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let installment of getRepaymentSchedule(selectedCredit)">
+                <td>{{installment.installment}}</td>
+                <td>{{formatDate(installment.dueDate)}}</td>
+                <td>{{formatCurrency(installment.principal)}}</td>
+                <td>{{formatCurrency(installment.interest)}}</td>
+                <td>{{formatCurrency(installment.amount)}}</td>
+                <td>
+                  <span class="status-badge" [class]="getStatusClass(installment.status)">
+                    {{installment.status}}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="generateSchedulePDF()">
+          <app-download-icon></app-download-icon>
+          Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Payment Modal -->
+  <div *ngIf="showBulkPaymentModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Bulk Payment Processing</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="bulkPaymentForm" (ngSubmit)="processBulkPayment()">
+        <div class="modal-body">
+          <div class="form-section">
+            <h4>Select Loans for Payment</h4>
+            <div class="loans-selection">
+              <div *ngFor="let credit of credits" class="loan-checkbox">
+                <label>
+                  <input type="checkbox" [value]="credit.id" 
+       (change)="toggleLoanSelection($event, credit.id)"
+       [checked]="isLoanSelected(credit.id)">
+                  {{credit.loanId}} - {{credit.farmerName}} (Balance: {{formatCurrency(credit.outstandingBalance)}})
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Payment Details</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Payment Date *</label>
+                <input type="date" formControlName="paymentDate">
+              </div>
+              <div class="form-group">
+                <label>Payment Method *</label>
+                <select formControlName="paymentMethod">
+                  <option value="cash">Cash</option>
+                  <option value="bank">Bank Transfer</option>
+                  <option value="mobile">Mobile Money</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea formControlName="notes" placeholder="Payment notes..." rows="2"></textarea>
+            </div>
+          </div>
+
+          <div class="payment-summary">
+            <h4>Summary</h4>
+            <div class="summary-item">
+              <strong>Selected Loans:</strong> {{getSelectedLoansCount()}}
+            </div>
+            <div class="summary-item">
+              <strong>Total Amount:</strong> {{formatCurrency(getSelectedTotal())}}
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" 
+                  [disabled]="bulkPaymentForm.invalid || getSelectedLoansCount() === 0 || isProcessingBulk">
+            {{isProcessingBulk ? 'Processing...' : 'Process Payments'}}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -743,6 +743,80 @@ export class RefreshIcon {}
 })
 export class ChartIcon {}
 
+// Dollar Icon
+@Component({
+  selector: 'app-dollar-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="1" x2="12" y2="23"></line>
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+    </svg>
+  `
+})
+export class DollarIcon {}
+
+// Percent Icon
+@Component({
+  selector: 'app-percent-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="19" y1="5" x2="5" y2="19"></line>
+      <circle cx="6.5" cy="6.5" r="2.5"></circle>
+      <circle cx="17.5" cy="17.5" r="2.5"></circle>
+    </svg>
+  `
+})
+export class PercentIcon {}
+
+// Calculator Icon
+@Component({
+  selector: 'app-calculator-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+      <line x1="8" y1="6" x2="16" y2="6"></line>
+      <line x1="8" y1="10" x2="8" y2="10"></line>
+      <line x1="12" y1="10" x2="12" y2="10"></line>
+      <line x1="16" y1="10" x2="16" y2="10"></line>
+      <line x1="8" y1="14" x2="8" y2="14"></line>
+      <line x1="12" y1="14" x2="12" y2="14"></line>
+      <line x1="16" y1="14" x2="16" y2="14"></line>
+      <line x1="8" y1="18" x2="16" y2="18"></line>
+    </svg>
+  `
+})
+export class CalculatorIcon {}
+
+// Receipt Icon
+@Component({
+  selector: 'app-receipt-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"></path>
+      <path d="M16 8h-6"></path>
+      <path d="M12 12h-2"></path>
+      <path d="M16 16h-6"></path>
+    </svg>
+  `
+})
+export class ReceiptIcon {}
+
+// Shield Icon
+@Component({
+  selector: 'app-shield-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+    </svg>
+  `
+})
+export class ShieldIcon {}
+
 // Export all icons
 export const SVG_ICONS = [
   DashboardIcon,
@@ -800,5 +874,10 @@ export const SVG_ICONS = [
   TagIcon,
   TruckIcon,
   RefreshIcon,
-  ChartIcon
+  ChartIcon,
+  DollarIcon,
+  PercentIcon,
+  CalculatorIcon,
+  ReceiptIcon,
+  ShieldIcon
 ];
