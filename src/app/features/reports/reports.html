@@ -1,1 +1,792 @@
-<p>reports works!</p>
+<!-- src/app/features/reports/reports.component.html -->
+<div class="reports-management">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <!-- Total Reports -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon primary">
+          <app-reports-icon></app-reports-icon>
+        </div>
+        <div class="stat-trend positive">+12%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Reports</h3>
+        <div class="value">{{stats.total || 0}}</div>
+        <div class="stat-change positive">
+          <span>From last month</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generated Reports -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon success">
+          <app-check-circle-icon></app-check-circle-icon>
+        </div>
+        <div class="stat-trend positive">+8%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Generated</h3>
+        <div class="value">{{stats.generated || 0}}</div>
+        <div class="stat-change positive">
+          <span>{{(stats.generated / stats.total * 100).toFixed(1) || 0}}% of total</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scheduled Reports -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon warning">
+          <app-clock-icon></app-clock-icon>
+        </div>
+        <div class="stat-trend positive">+15%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Scheduled</h3>
+        <div class="value">{{stats.scheduled || 0}}</div>
+        <div class="stat-change positive">
+          <span>{{(stats.scheduled / stats.total * 100).toFixed(1) || 0}}% automated</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total File Size -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon accent">
+          <app-file-icon></app-file-icon>
+        </div>
+        <div class="stat-trend positive">+5%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Size</h3>
+        <div class="value">{{(stats.totalFileSize || 0).toFixed(1)}} MB</div>
+        <div class="stat-change positive">
+          <span>Average: {{(stats.totalFileSize / stats.total || 0).toFixed(1)}} MB</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">Reports Dashboard</h2>
+      
+      <!-- Actions Toolbar -->
+      <div class="action-toolbar">
+        <!-- Search -->
+        <div class="search-box">
+          <app-search-icon></app-search-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (keyup.enter)="onSearch()"
+            placeholder="Search by title, description..."
+          >
+          <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()">
+            <app-x-circle-icon></app-x-circle-icon>
+          </button>
+        </div>
+
+        <!-- Filter Button -->
+        <button class="btn btn-outline" (click)="showFiltersModal = true">
+          <app-filter-icon></app-filter-icon>
+          <span>Filter</span>
+        </button>
+
+        <!-- Quick Actions -->
+        <div class="dropdown">
+          <button class="btn btn-primary">
+            <app-plus-icon></app-plus-icon>
+            <span>Generate Report</span>
+          </button>
+          <div class="dropdown-menu">
+            <button class="dropdown-item" (click)="openGenerateModal()">
+              <app-file-icon></app-file-icon>
+              <span>From Template</span>
+            </button>
+            <button class="dropdown-item" (click)="openCustomModal()">
+              <app-settings-icon></app-settings-icon>
+              <span>Custom Report</span>
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" (click)="openTemplatesModal()">
+              <app-file-icon></app-file-icon>
+              <span>Browse Templates</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Schedule Button -->
+        <button class="btn btn-outline" (click)="openScheduleModal()">
+          <app-clock-icon></app-clock-icon>
+          <span>Schedule</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Reports Table -->
+    <div class="table-container">
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>Report</th>
+            <th>Type</th>
+            <th>Generated</th>
+            <th>Period</th>
+            <th>Format</th>
+            <th>Size</th>
+            <th>Status</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let report of filteredReports" class="report-row">
+            <!-- Report Info -->
+            <td class="report-info">
+              <div class="report-icon">
+                <app-file-icon></app-file-icon>
+              </div>
+              <div class="report-details">
+                <div class="report-title">{{report.title}}</div>
+                <div class="report-desc">{{report.description || 'No description'}}</div>
+                <div class="report-generated">By {{report.generatedBy}}</div>
+              </div>
+            </td>
+
+            <!-- Type -->
+            <td class="type-info">
+              <div class="type-badge" [class]="getReportTypeIcon(report.type)">
+                {{getReportTypeLabel(report.type)}}
+              </div>
+              <div *ngIf="report.isScheduled" class="scheduled-badge">
+                <app-clock-icon></app-clock-icon>
+                <span>Scheduled</span>
+              </div>
+            </td>
+
+            <!-- Generated Date -->
+            <td class="date-info">
+              <div class="date-value">{{formatDate(report.generationDate)}}</div>
+              <div class="date-diff">{{getTimeAgo(report.generationDate)}}</div>
+            </td>
+
+            <!-- Period -->
+            <td class="period-info">
+              <div class="period-range">
+                {{formatDate(report.period.start)}} - {{formatDate(report.period.end)}}
+              </div>
+              <div class="period-days">{{getDaysBetween(report.period.start, report.period.end)}} days</div>
+            </td>
+
+            <!-- Format -->
+            <td class="format-info">
+              <div class="format-badge" [class]="getFormatClass(report.format)">
+                {{report.format.toUpperCase()}}
+              </div>
+            </td>
+
+            <!-- Size -->
+            <td class="size-info">
+              <div class="size-value">{{getFileSize(report.fileSize || 0)}}</div>
+            </td>
+
+            <!-- Status -->
+            <td class="status-info">
+              <div class="status-badge" [class]="getStatusClass(report.status)">
+                {{report.status | titlecase}}
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button class="action-btn view-btn" (click)="openViewModal(report)" title="View Details">
+                  <app-eye-icon></app-eye-icon>
+                </button>
+                <button class="action-btn download-btn" (click)="downloadReport(report)" title="Download">
+                  <app-download-icon></app-download-icon>
+                </button>
+                <button class="action-btn schedule-btn" (click)="openScheduleModal()" title="Schedule" *ngIf="!report.isScheduled">
+                  <app-clock-icon></app-clock-icon>
+                </button>
+                <button class="action-btn delete-btn" (click)="openDeleteModal(report)" title="Delete">
+                  <app-trash-icon></app-trash-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredReports.length === 0" class="empty-state">
+        <app-file-icon></app-file-icon>
+        <p>No reports found</p>
+        <button class="btn btn-primary" (click)="openGenerateModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>Generate Your First Report</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        Previous
+      </button>
+      
+      <div class="page-numbers">
+        <button *ngFor="let page of getPageNumbers()" 
+                class="page-number" 
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)">
+          {{page}}
+        </button>
+      </div>
+      
+      <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        Next
+      </button>
+      
+      <div class="page-info">
+        Showing {{(currentPage - 1) * itemsPerPage + 1}}-{{getEndIndex()}} of {{totalItems}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+
+  <!-- Generate Report Modal -->
+  <div *ngIf="showGenerateModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Generate Report</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Select Template</label>
+          <select [(ngModel)]="selectedTemplate">
+            <option value="">Select a template...</option>
+            <option *ngFor="let template of templates" [value]="template.id">
+              {{template.name}} - {{template.description}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-section">
+          <h4>Report Options</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Format</label>
+              <select [(ngModel)]="customReportRequest.format">
+                <option value="pdf">PDF Document</option>
+                <option value="excel">Excel Spreadsheet</option>
+                <option value="csv">CSV Data</option>
+                <option value="html">HTML Report</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date Range</label>
+              <div class="date-range-inputs">
+                <input type="date" [(ngModel)]="dateRange.start" placeholder="Start date">
+                <span>to</span>
+                <input type="date" [(ngModel)]="dateRange.end" placeholder="End date">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <h4>Preview</h4>
+          <div class="preview-card" *ngIf="selectedTemplate">
+            <div class="preview-header">
+              <app-file-icon></app-file-icon>
+              <div>
+                <strong>{{getSelectedTemplateName()}}</strong>
+                <div class="preview-desc">{{getSelectedTemplateDesc()}}</div>
+              </div>
+            </div>
+            <div class="preview-content">
+              <div class="preview-item">
+                <strong>Format:</strong> {{customReportRequest.format.toUpperCase()}}
+              </div>
+              <div class="preview-item">
+                <strong>Period:</strong> {{dateRange.start || 'All time'}} to {{dateRange.end || 'Today'}}
+              </div>
+              <div class="preview-item">
+                <strong>Estimated size:</strong> ~2-5 MB
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" 
+                (click)="generateReport()" 
+                [disabled]="!selectedTemplate || isGenerating">
+          {{isGenerating ? 'Generating...' : 'Generate Report'}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Report Modal -->
+  <div *ngIf="showCustomModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content custom-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Create Custom Report</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-section">
+          <h4>Report Details</h4>
+          <div class="form-group">
+            <label>Report Name *</label>
+            <input type="text" [(ngModel)]="customReportRequest.name" placeholder="Enter report name">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea [(ngModel)]="customReportRequest.description" placeholder="Describe the purpose of this report..." rows="2"></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Data Selection</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Start Date</label>
+              <input type="date" [(ngModel)]="dateRange.start" placeholder="Start date">
+            </div>
+            <div class="form-group">
+              <label>End Date</label>
+              <input type="date" [(ngModel)]="dateRange.end" placeholder="End date">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Metrics to Include</h4>
+          <div class="checkbox-grid">
+            <label *ngFor="let metric of availableMetrics" class="checkbox-option">
+              <input type="checkbox" 
+                     [checked]="customReportRequest.metrics.includes(metric.value)"
+                     (change)="toggleMetric(metric.value)">
+              <span>{{metric.label}}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Visualizations</h4>
+          <div class="checkbox-grid">
+            <label *ngFor="let viz of visualizations" class="checkbox-option">
+              <input type="checkbox" 
+                     [checked]="customReportRequest.visualizations.includes(viz.value)"
+                     (change)="toggleVisualization(viz.value)">
+              <span>{{viz.label}}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Output Options</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Format *</label>
+              <select [(ngModel)]="customReportRequest.format">
+                <option value="pdf">PDF Document</option>
+                <option value="excel">Excel Spreadsheet</option>
+                <option value="csv">CSV Data</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="checkbox-option">
+                <input type="checkbox" [(ngModel)]="customReportRequest.includeRawData">
+                <span>Include raw data</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" 
+                (click)="generateCustomReport()" 
+                [disabled]="!customReportRequest.name.trim() || isGenerating">
+          {{isGenerating ? 'Creating...' : 'Create Custom Report'}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Report Modal -->
+  <div *ngIf="showViewModal && selectedReport" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content view-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Report Details</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Report Header -->
+        <div class="report-header">
+          <div class="report-icon large">
+            <app-file-icon></app-file-icon>
+          </div>
+          <div class="report-info">
+            <h2>{{selectedReport.title}}</h2>
+            <div class="report-meta">
+              <span class="type-badge" [class]="getReportTypeIcon(selectedReport.type)">
+                {{getReportTypeLabel(selectedReport.type)}}
+              </span>
+              <span class="format-badge" [class]="getFormatClass(selectedReport.format)">
+                {{selectedReport.format.toUpperCase()}}
+              </span>
+              <span class="status-badge" [class]="getStatusClass(selectedReport.status)">
+                {{selectedReport.status | titlecase}}
+              </span>
+            </div>
+            <div class="report-description">
+              {{selectedReport.description}}
+            </div>
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-outline" (click)="downloadReport(selectedReport)">
+              <app-download-icon></app-download-icon>
+              <span>Download</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="report-tabs">
+          <div class="tab active">Overview</div>
+          <div class="tab">Data</div>
+          <div class="tab">Metrics</div>
+          <div class="tab">Schedule</div>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <div class="info-grid">
+            <div class="info-section">
+              <h4>Generation Details</h4>
+              <div class="info-item">
+                <strong>Generated By:</strong> {{selectedReport.generatedBy}}
+              </div>
+              <div class="info-item">
+                <strong>Generation Date:</strong> {{formatDate(selectedReport.generationDate)}}
+              </div>
+              <div class="info-item">
+                <strong>Processing Time:</strong> {{selectedReport.metrics?.timeGenerated || 'N/A'}}
+              </div>
+              <div class="info-item">
+                <strong>Data Points:</strong> {{selectedReport.metrics?.dataPoints || 0}}
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Report Period</h4>
+              <div class="info-item">
+                <strong>Start Date:</strong> {{formatDate(selectedReport.period.start)}}
+              </div>
+              <div class="info-item">
+                <strong>End Date:</strong> {{formatDate(selectedReport.period.end)}}
+              </div>
+              <div class="info-item">
+                <strong>Duration:</strong> {{getDaysBetween(selectedReport.period.start, selectedReport.period.end)}} days
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>File Information</h4>
+              <div class="info-item">
+                <strong>Format:</strong> {{selectedReport.format.toUpperCase()}}
+              </div>
+              <div class="info-item">
+                <strong>File Size:</strong> {{getFileSize(selectedReport.fileSize || 0)}}
+              </div>
+              <div class="info-item">
+                <strong>Status:</strong> 
+                <span class="status-badge" [class]="getStatusClass(selectedReport.status)">
+                  {{selectedReport.status | titlecase}}
+                </span>
+              </div>
+              <div class="info-item" *ngIf="selectedReport.isScheduled">
+                <strong>Scheduled:</strong> Yes ({{selectedReport.schedule?.frequency}})
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary Data -->
+          <div class="summary-section" *ngIf="selectedReport.data.summary">
+            <h4>Report Summary</h4>
+            <div class="summary-grid">
+              <div *ngFor="let key of getSummaryKeys(selectedReport.data.summary)" class="summary-card">
+                <div class="summary-label">{{formatKey(key)}}</div>
+                <div class="summary-value">{{selectedReport.data.summary[key]}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="closeModal()">Close</button>
+        <button class="btn btn-primary" (click)="downloadReport(selectedReport)">
+          <app-download-icon></app-download-icon>
+          <span>Download Report</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteModal && selectedReport" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Delete Report</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="warning-icon">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <h4>Are you sure you want to delete this report?</h4>
+        <p>This will permanently delete <strong>{{selectedReport.title}}</strong>.</p>
+        <div class="report-preview">
+          <div class="report-icon">
+            <app-file-icon></app-file-icon>
+          </div>
+          <div>
+            <strong>{{selectedReport.title}}</strong>
+            <div class="report-meta">
+              {{getReportTypeLabel(selectedReport.type)}} • {{getFileSize(selectedReport.fileSize || 0)}} • {{formatDate(selectedReport.generationDate)}}
+            </div>
+          </div>
+        </div>
+        <p class="warning-text">This action cannot be undone. The report file will be permanently removed.</p>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="deleteReport()">
+          Delete Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Report Modal -->
+  <div *ngIf="showScheduleModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content schedule-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Schedule Report</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Select Template</label>
+          <select [(ngModel)]="selectedTemplate">
+            <option value="">Select a template...</option>
+            <option *ngFor="let template of templates" [value]="template.id">
+              {{template.name}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Frequency</label>
+          <select [(ngModel)]="selectedFrequency">
+            <option *ngFor="let freq of frequencies" [value]="freq.value">
+              {{freq.label}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-section">
+          <h4>Schedule Details</h4>
+          <div class="schedule-info">
+            <div class="schedule-item">
+              <strong>Next Run:</strong> {{getNextRunDate()}}
+            </div>
+            <div class="schedule-item">
+              <strong>Delivery Format:</strong> PDF
+            </div>
+            <div class="schedule-item">
+              <strong>Recipients:</strong> System Admins
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Email Notification</h4>
+          <div class="checkbox-option">
+            <input type="checkbox" id="emailNotify" checked>
+            <label for="emailNotify">Send email notification when report is generated</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" 
+                (click)="scheduleReport()" 
+                [disabled]="!selectedTemplate || isScheduling">
+          {{isScheduling ? 'Scheduling...' : 'Schedule Report'}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Modal -->
+  <div *ngIf="showFiltersModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content filters-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Filter Reports</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="filter-group">
+          <h4>Report Type</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" value="all">
+              <span>All Types</span>
+            </label>
+            <label *ngFor="let type of reportTypes" class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" [value]="type.value">
+              <span>{{type.label}}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Status</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="all">
+              <span>All Status</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="generated">
+              <span class="status-badge status-active">Generated</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="pending">
+              <span class="status-badge status-pending">Pending</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="failed">
+              <span class="status-badge status-suspended">Failed</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Format</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="format" [(ngModel)]="formatFilter" value="all">
+              <span>All Formats</span>
+            </label>
+            <label *ngFor="let format of formats" class="filter-option">
+              <input type="radio" name="format" [(ngModel)]="formatFilter" [value]="format.value">
+              <span>{{format.label}}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Date Range</h4>
+          <div class="date-range-inputs">
+            <input type="date" [(ngModel)]="dateRange.start" placeholder="Start date">
+            <span>to</span>
+            <input type="date" [(ngModel)]="dateRange.end" placeholder="End date">
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">
+          Clear All
+        </button>
+        <button type="button" class="btn btn-primary" (click)="applyFilters()">
+          Apply Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Templates Modal -->
+  <div *ngIf="showTemplatesModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content templates-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Report Templates</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="templates-grid">
+          <div *ngFor="let template of templates" class="template-card">
+            <div class="template-icon">
+              <app-file-icon></app-file-icon>
+            </div>
+            <div class="template-info">
+              <h4>{{template.name}}</h4>
+              <p>{{template.description}}</p>
+              <div class="template-meta">
+                <span class="template-type">{{getReportTypeLabel(template.type)}}</span>
+              </div>
+            </div>
+            <div class="template-actions">
+              <button class="btn btn-outline" (click)="openGenerateModal(template.id)">
+                Use Template
+              </button>
+              <button class="btn btn-text" (click)="openScheduleModal(template.id)">
+                <app-clock-icon></app-clock-icon>
+                Schedule
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="openCustomModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>Create Custom Template</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

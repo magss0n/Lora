@@ -79,7 +79,7 @@ export class SidebarComponent {
     // Operations Section
     { title: 'Communication Hub', icon: CommunicationIcon, route: '/communication', section: 'Operations' },
     { title: 'Reports & Analytics', icon: ReportsIcon, route: '/reports', section: 'Operations' },
-    { title: 'Settings', icon: SettingsIcon, route: '/settings', section: 'Operations' }
+    // { title: 'Settings', icon: SettingsIcon, route: '/settings', section: 'Operations' }
   ];
 
   get sections(): string[] {

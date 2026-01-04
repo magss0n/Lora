@@ -1232,6 +1232,32 @@ export class StopIcon {}
 })
 export class TextIcon {}
 
+// Pie Chart Icon
+@Component({
+  selector: 'app-pie-chart-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+      <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+    </svg>
+  `
+})
+export class PieChartIcon {}
+
+// Line Chart Icon
+@Component({
+  selector: 'app-line-chart-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 3v18h18"></path>
+      <path d="m19 9-5 5-4-4-3 3"></path>
+    </svg>
+  `
+})
+export class LineChartIcon {}
+
 // Export all icons
 export const SVG_ICONS = [
   DashboardIcon,
@@ -1326,5 +1352,7 @@ export const SVG_ICONS = [
   MicIcon,
   PauseIcon,
   StopIcon,
-  TextIcon
+  TextIcon,
+  PieChartIcon,
+  LineChartIcon
 ];

@@ -1305,7 +1305,7 @@
   border-radius: 8px;
 }
 
-// Modal Styles
+//Modal Styles
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1581,6 +1581,922 @@
       background: rgba(45, 80, 22, 0.1);
       border-radius: 12px;
       color: var(--primary, #2d5016);
+    }
+  }
+}
+
+/* Create Announcement Modal Styles */
+
+// Modal Container
+.create-announcement-modal {
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease-out;
+    overflow: hidden;
+
+    &.large-modal {
+      max-width: 900px;
+      width: 95%;
+    }
+  }
+
+  // Modal Header
+  .modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color, #e1e8d9);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+
+    h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary, #1a1f16);
+      margin: 0;
+    }
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: var(--text-secondary, #5a6c5d);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-primary, #1a1f16);
+    }
+
+    ::ng-deep svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  // Modal Body
+  .modal-body {
+    padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(45, 80, 22, 0.05);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(45, 80, 22, 0.2);
+      border-radius: 4px;
+
+      &:hover {
+        background: rgba(45, 80, 22, 0.3);
+      }
+    }
+  }
+
+  // Modal Footer
+  .modal-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border-color, #e1e8d9);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    background: white;
+    position: sticky;
+    bottom: 0;
+
+    .btn {
+      min-width: 120px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  // Form Sections
+  .form-section {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(45, 80, 22, 0.1);
+
+    &:last-of-type {
+      border-bottom: none;
+      margin-bottom: 1rem;
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary, #1a1f16);
+      margin: 0 0 1.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      &::before {
+        content: "";
+        display: block;
+        width: 4px;
+        height: 16px;
+        background: var(--primary, #2d5016);
+        border-radius: 2px;
+      }
+    }
+  }
+
+  // Form Groups
+  .form-group {
+    margin-bottom: 1.5rem;
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary, #1a1f16);
+      margin-bottom: 0.5rem;
+
+      &.required::after {
+        content: "*";
+        color: #c44536;
+        margin-left: 0.25rem;
+      }
+    }
+
+    // Input Fields
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 1px solid var(--border-color, #e1e8d9);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: var(--text-primary, #1a1f16);
+      background: white;
+      transition: all 0.3s;
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary, #2d5016);
+        box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
+      }
+
+      &::placeholder {
+        color: var(--text-secondary, #8a9b8c);
+      }
+
+      &.ng-invalid.ng-touched {
+        border-color: #c44536;
+        background: rgba(196, 69, 54, 0.02);
+      }
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    // Message Type Options
+    .message-type-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 0.5rem;
+
+      .radio-option {
+        position: relative;
+        cursor: pointer;
+
+        input[type="radio"] {
+          position: absolute;
+          opacity: 0;
+          width: 0;
+          height: 0;
+
+          &:checked + .option-content {
+            border-color: var(--primary, #2d5016);
+            background: rgba(45, 80, 22, 0.05);
+            box-shadow: 0 0 0 2px rgba(45, 80, 22, 0.1);
+
+            .option-icon {
+              color: var(--primary, #2d5016);
+            }
+          }
+        }
+
+        .option-content {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1.25rem;
+          border: 2px solid var(--border-color, #e1e8d9);
+          border-radius: 12px;
+          background: white;
+          transition: all 0.3s;
+
+          &:hover {
+            border-color: var(--primary-light, #4a7c2a);
+            transform: translateY(-2px);
+          }
+
+          .option-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(45, 80, 22, 0.1);
+            border-radius: 10px;
+            color: var(--text-secondary, #5a6c5d);
+            transition: all 0.3s;
+
+            ::ng-deep svg {
+              width: 24px;
+              height: 24px;
+            }
+          }
+
+          .option-info {
+            flex: 1;
+
+            strong {
+              display: block;
+              font-size: 1rem;
+              font-weight: 700;
+              color: var(--text-primary, #1a1f16);
+              margin-bottom: 0.25rem;
+            }
+
+            span {
+              font-size: 0.875rem;
+              color: var(--text-secondary, #5a6c5d);
+            }
+          }
+        }
+      }
+    }
+
+    // Character Count
+    .char-count {
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--text-secondary, #8a9b8c);
+      margin-top: 0.5rem;
+    }
+  }
+
+  // Form Rows
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  // Audio Recorder Container
+  .audio-recorder-container {
+    display: grid;
+    gap: 2rem;
+    margin-top: 1rem;
+  }
+
+  // Audio Recorder
+  .audio-recorder {
+    background: linear-gradient(135deg, rgba(45, 80, 22, 0.02), rgba(45, 80, 22, 0.05));
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid rgba(45, 80, 22, 0.1);
+
+    .recorder-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+
+      h5 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary, #1a1f16);
+        margin: 0;
+      }
+
+      .recorder-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+        background: rgba(45, 80, 22, 0.1);
+        color: var(--primary, #2d5016);
+
+        &.status-ready {
+          background: rgba(0, 150, 255, 0.1);
+          color: #0096ff;
+        }
+
+        &.status-recording {
+          background: rgba(220, 53, 69, 0.1);
+          color: #dc3545;
+          animation: pulse 1.5s infinite;
+        }
+
+        &.status-paused {
+          background: rgba(255, 193, 7, 0.1);
+          color: #ffc107;
+        }
+
+        .status-indicator {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: currentColor;
+        }
+      }
+    }
+
+    .recorder-controls {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+
+      .btn {
+        flex: 1;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.875rem;
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        &.recording-active {
+          background: #dc3545;
+          color: white;
+          border-color: #dc3545;
+        }
+      }
+    }
+
+    .recorder-display {
+      .recording-time {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary, #1a1f16);
+        margin-bottom: 1rem;
+
+        ::ng-deep svg {
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .audio-waveform-preview {
+        height: 60px;
+        margin-bottom: 1rem;
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 8px;
+        overflow: hidden;
+
+        .waveform-canvas {
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+      }
+
+      .recording-preview {
+        .preview-audio {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem;
+          background: white;
+          border: 1px solid var(--border-color, #e1e8d9);
+          border-radius: 8px;
+
+          .audio-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            ::ng-deep svg {
+              width: 24px;
+              height: 24px;
+              color: var(--primary, #2d5016);
+            }
+
+            div {
+              strong {
+                display: block;
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--text-primary, #1a1f16);
+                margin-bottom: 0.25rem;
+              }
+
+              span {
+                font-size: 0.875rem;
+                color: var(--text-secondary, #5a6c5d);
+              }
+            }
+          }
+
+          .audio-actions {
+            display: flex;
+            gap: 0.5rem;
+
+            .btn {
+              padding: 0.5rem 0.75rem;
+              font-size: 0.875rem;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Audio Upload
+  .audio-upload {
+    h5 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary, #1a1f16);
+      margin: 0 0 1rem 0;
+    }
+
+    .upload-area {
+      border: 2px dashed var(--border-color, #e1e8d9);
+      border-radius: 12px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 1.5rem;
+
+      &.dragover {
+        border-color: var(--primary, #2d5016);
+        background: rgba(45, 80, 22, 0.05);
+        transform: scale(1.02);
+      }
+
+      &:hover {
+        border-color: var(--primary-light, #4a7c2a);
+        background: rgba(45, 80, 22, 0.02);
+      }
+
+      .upload-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(45, 80, 22, 0.1);
+        border-radius: 50%;
+        color: var(--primary, #2d5016);
+
+        ::ng-deep svg {
+          width: 30px;
+          height: 30px;
+        }
+      }
+
+      .upload-text {
+        p {
+          margin: 0.5rem 0;
+          color: var(--text-secondary, #5a6c5d);
+
+          .text-link {
+            color: var(--primary, #2d5016);
+            font-weight: 600;
+            text-decoration: underline;
+          }
+        }
+      }
+
+      .upload-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        margin-top: 1rem;
+        font-size: 0.75rem;
+        color: var(--text-light, #8a9b8c);
+      }
+    }
+
+    .uploaded-file {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      background: white;
+      border: 1px solid var(--border-color, #e1e8d9);
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+
+      .file-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        ::ng-deep svg {
+          width: 24px;
+          height: 24px;
+          color: var(--primary, #2d5016);
+        }
+
+        .file-details {
+          strong {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary, #1a1f16);
+            margin-bottom: 0.25rem;
+          }
+
+          span {
+            font-size: 0.875rem;
+            color: var(--text-secondary, #5a6c5d);
+          }
+        }
+      }
+
+      .file-actions {
+        display: flex;
+        gap: 0.5rem;
+
+        .btn {
+          padding: 0.5rem;
+          min-width: auto;
+
+          ::ng-deep svg {
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
+    }
+  }
+
+  // Checkbox Groups
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+
+    &.multi-checkbox {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin: 1rem 0;
+
+      label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color, #e1e8d9);
+        border-radius: 8px;
+        width: 100%;
+        transition: all 0.2s;
+
+        &:hover {
+          background: rgba(45, 80, 22, 0.05);
+          border-color: var(--primary-light, #4a7c2a);
+        }
+
+        input[type="checkbox"] {
+          width: 18px;
+          height: 18px;
+          border-radius: 4px;
+          border: 2px solid var(--border-color, #e1e8d9);
+          cursor: pointer;
+
+          &:checked {
+            background-color: var(--primary, #2d5016);
+            border-color: var(--primary, #2d5016);
+          }
+        }
+
+        span {
+          font-size: 0.95rem;
+          color: var(--text-primary, #1a1f16);
+        }
+      }
+    }
+  }
+
+  // Preview Section
+  .preview-box {
+    background: rgba(45, 80, 22, 0.03);
+    border: 1px solid var(--border-color, #e1e8d9);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 0.5rem;
+
+    .preview-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary, #1a1f16);
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(45, 80, 22, 0.1);
+    }
+
+    .preview-content {
+      margin-bottom: 1rem;
+
+      .preview-message {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text-secondary, #5a6c5d);
+        white-space: pre-wrap;
+      }
+
+      .preview-audio-message {
+        .audio-preview {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          background: white;
+          border: 1px solid var(--border-color, #e1e8d9);
+          border-radius: 8px;
+          margin-bottom: 1rem;
+
+          ::ng-deep svg {
+            width: 24px;
+            height: 24px;
+            color: var(--primary, #2d5016);
+          }
+
+          span {
+            flex: 1;
+            font-weight: 600;
+            color: var(--text-primary, #1a1f16);
+          }
+
+          .audio-duration {
+            font-size: 0.875rem;
+            color: var(--text-secondary, #5a6c5d);
+            background: rgba(45, 80, 22, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+          }
+        }
+
+        .audio-text-preview {
+          font-size: 0.875rem;
+          color: var(--text-secondary, #5a6c5d);
+          padding: 0.75rem;
+          background: rgba(45, 80, 22, 0.05);
+          border-radius: 8px;
+          border-left: 3px solid var(--primary, #2d5016);
+
+          strong {
+            color: var(--text-primary, #1a1f16);
+          }
+        }
+      }
+    }
+
+    .preview-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+
+      .preview-type,
+      .preview-language,
+      .preview-target {
+        padding: 0.375rem 0.875rem;
+        background: rgba(45, 80, 22, 0.1);
+        color: var(--primary, #2d5016);
+        border-radius: 20px;
+        font-weight: 600;
+      }
+    }
+  }
+
+  // Helper Classes
+  .text-link {
+    color: var(--primary, #2d5016);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--primary-dark, #1e3610);
+    }
+  }
+
+  .error-message {
+    color: #c44536;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+
+  .success-message {
+    color: #2d5016;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .create-announcement-modal {
+    .modal-content {
+      max-width: 95%;
+      margin: 1rem;
+    }
+
+    .modal-header {
+      padding: 1.25rem;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 1.25rem;
+      flex-direction: column;
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    .form-section {
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+    }
+
+    .message-type-options {
+      grid-template-columns: 1fr !important;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .recorder-controls {
+      flex-direction: column;
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    .preview-details {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+}
+
+// Dark Mode Support
+@media (prefers-color-scheme: dark) {
+  .create-announcement-modal {
+    .modal-content {
+      background: #1a1f16;
+      color: #e8f5e9;
+    }
+
+    .modal-header {
+      background: #1a1f16;
+      border-color: #2d3a2d;
+
+      h3 {
+        color: #e8f5e9;
+      }
+    }
+
+    .modal-footer {
+      background: #1a1f16;
+      border-color: #2d3a2d;
+    }
+
+    .form-group {
+      input,
+      select,
+      textarea {
+        background: #2d3a2d;
+        border-color: #3d4a3d;
+        color: #e8f5e9;
+
+        &::placeholder {
+          color: #8a9b8c;
+        }
+
+        &:focus {
+          border-color: #4a7c2a;
+          box-shadow: 0 0 0 3px rgba(74, 124, 42, 0.2);
+        }
+      }
+    }
+
+    .checkbox-group.multi-checkbox label {
+      background: #2d3a2d;
+      border-color: #3d4a3d;
+
+      &:hover {
+        background: #3d4a3d;
+      }
+    }
+
+    .preview-box {
+      background: rgba(45, 80, 22, 0.15);
+      border-color: #3d4a3d;
+
+      .preview-message {
+        color: #c5d6c6;
+      }
     }
   }
 }
