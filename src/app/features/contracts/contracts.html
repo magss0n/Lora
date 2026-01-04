@@ -1,1 +1,1114 @@
-<p>contracts works!</p>
+ <div class="contracts-management">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <!-- Total Contracts -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon primary">
+          <app-contract-icon></app-contract-icon>
+        </div>
+        <div class="stat-trend positive">+12%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Contracts</h3>
+        <div class="value">{{stats.total || 0}}</div>
+        <div class="stat-change positive">
+          <span>From last quarter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Contracts -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon success">
+          <app-check-circle-icon></app-check-circle-icon>
+        </div>
+        <div class="stat-trend positive">+8%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Active Contracts</h3>
+        <div class="value">{{stats.active || 0}}</div>
+        <div class="stat-change positive">
+          <span>{{(stats.active / stats.total * 100).toFixed(1) || 0}}% of total</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Contract Value -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon warning">
+          <app-money-icons></app-money-icons>
+        </div>
+        <div class="stat-trend positive">+15%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Value</h3>
+        <div class="value">{{formatCurrency(stats.totalValue || 0)}}</div>
+        <div class="stat-change positive">
+          <span>Average: {{formatCurrency((stats.totalValue / stats.total) || 0)}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Renewals -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon accent">
+          <app-renew-icon></app-renew-icon>
+        </div>
+        <div class="stat-trend warning">{{stats.upcomingRenewals || 0}}</div>
+      </div>
+      <div class="stat-content">
+        <h3>Upcoming Renewals</h3>
+        <div class="value">{{stats.upcomingRenewals || 0}}</div>
+        <div class="stat-change warning">
+          <span>Next 30 days</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">Contract Repository</h2>
+      
+      <!-- Actions Toolbar -->
+      <div class="action-toolbar">
+        <!-- Search -->
+        <div class="search-box">
+          <app-search-icon></app-search-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (keyup.enter)="onSearch()"
+            placeholder="Search by title, contract number, party..."
+          >
+          <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()">
+            <app-x-circle-icon></app-x-circle-icon>
+          </button>
+        </div>
+
+        <!-- Filter Button -->
+        <button class="btn btn-outline" (click)="showFiltersModal = true">
+          <app-filter-icon></app-filter-icon>
+          <span>Filter</span>
+        </button>
+
+        <!-- Primary Actions -->
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <app-add-contract-icon></app-add-contract-icon>
+          <span>Create Contract</span>
+        </button>
+
+        <!-- Templates -->
+        <button class="btn btn-outline" (click)="openTemplateModal()">
+          <app-template-icon></app-template-icon>
+          <span>Templates</span>
+        </button>
+
+        <!-- Export -->
+        <button class="btn btn-outline" (click)="showExportModal = true">
+          <app-export-icon></app-export-icon>
+          <span>Export</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contracts Table -->
+    <div class="table-container">
+      <table class="contracts-table">
+        <thead>
+          <tr>
+            <th>Contract</th>
+            <th>Parties</th>
+            <th>Period</th>
+            <th>Value</th>
+            <th>Fulfillment</th>
+            <th>Status</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let contract of filteredContracts" class="contract-row">
+            <!-- Contract Info -->
+            <td class="contract-info">
+              <div class="contract-icon">
+                <app-contract-icon></app-contract-icon>
+              </div>
+              <div class="contract-details">
+                <div class="contract-title">{{contract.title}}</div>
+                <div class="contract-number">{{contract.contractNumber}}</div>
+                <div class="contract-type">
+                  <span class="type-badge" [class]="getTypeClass(contract.type)">
+                    {{getTypeLabel(contract.type)}}
+                  </span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Parties -->
+            <td class="parties-info">
+              <div *ngIf="contract.farmerName" class="party-item">
+                <strong>Farmer:</strong> {{contract.farmerName}}
+              </div>
+              <div *ngIf="contract.buyerName" class="party-item">
+                <strong>Buyer:</strong> {{contract.buyerName}}
+              </div>
+              <div *ngIf="contract.supplierName" class="party-item">
+                <strong>Supplier:</strong> {{contract.supplierName}}
+              </div>
+            </td>
+
+            <!-- Period -->
+            <td class="period-info">
+              <div class="period-item">
+                <strong>Start:</strong> {{formatDate(contract.startDate)}}
+              </div>
+              <div class="period-item">
+                <strong>End:</strong> {{formatDate(contract.endDate)}}
+              </div>
+              <div class="period-item">
+                <strong>Duration:</strong> {{getDuration(contract.startDate, contract.endDate)}}
+              </div>
+            </td>
+
+            <!-- Value -->
+            <td class="value-info">
+              <div class="value-amount">{{formatCurrency(contract.totalValue, contract.currency)}}</div>
+              <div class="value-terms">{{contract.paymentTerms}}</div>
+            </td>
+
+            <!-- Fulfillment -->
+            <td class="fulfillment-info">
+              <div class="fulfillment-progress">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="contract.fulfillment?.completionPercentage || 0"></div>
+                </div>
+                <div class="progress-text">{{contract.fulfillment?.completionPercentage || 0}}%</div>
+              </div>
+              <div class="fulfillment-stats">
+                <span class="stat">{{contract.fulfillment?.deliveredQuantity || 0}} / {{contract.fulfillment?.totalQuantity || 0}}</span>
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td class="status-info">
+              <div class="status-badge" [class]="getStatusClass(contract.status)">
+                {{contract.status | titlecase}}
+              </div>
+              <div *ngIf="contract.renewalReminderDate" class="renewal-reminder">
+                Renewal: {{formatDate(contract.renewalReminderDate)}}
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button class="action-btn view-btn" (click)="openViewModal(contract)" title="View Details">
+                  <app-view-contract-icon></app-view-contract-icon>
+                </button>
+                <button class="action-btn edit-btn" (click)="openEditModal(contract)" title="Edit">
+                  <app-edit-contract-icon></app-edit-contract-icon>
+                </button>
+                <button class="action-btn delivery-btn" (click)="openDeliveryModal(contract)" title="Record Delivery">
+                  <app-truck-icon></app-truck-icon>
+                </button>
+                <button class="action-btn delete-btn" (click)="openDeleteModal(contract)" title="Delete">
+                  <app-delete-contract-icon></app-delete-contract-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredContracts.length === 0 && !isLoading" class="empty-state">
+        <app-contract-icon></app-contract-icon>
+        <p>No contracts found</p>
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <app-add-contract-icon></app-add-contract-icon>
+          <span>Create Your First Contract</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        Previous
+      </button>
+      
+      <div class="page-numbers">
+        <button *ngFor="let page of getPageNumbers()" 
+                class="page-number" 
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)">
+          {{page}}
+        </button>
+      </div>
+      
+      <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        Next
+      </button>
+      
+      <div class="page-info">
+        Showing {{(currentPage - 1) * itemsPerPage + 1}}-{{getEndIndex()}} of {{totalItems}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  
+  <!-- Add Contract Modal -->
+  <div *ngIf="showAddModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Create New Contract</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="contractForm" (ngSubmit)="addContract()">
+        <div class="modal-body">
+          <!-- Basic Information -->
+          <div class="form-section">
+            <h4>Basic Information</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Contract Title *</label>
+                <input type="text" formControlName="title" placeholder="Enter contract title">
+              </div>
+              <div class="form-group">
+                <label>Contract Type *</label>
+                <select formControlName="type">
+                  <option value="">Select Type</option>
+                  <option value="farmer-supply">Farmer Supply Agreement</option>
+                  <option value="buyer-purchase">Buyer Purchase Agreement</option>
+                  <option value="equipment-lease">Equipment Lease</option>
+                  <option value="service">Service Contract</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Farmer Name</label>
+                <input type="text" formControlName="farmerName" placeholder="Select farmer">
+              </div>
+              <div class="form-group">
+                <label>Buyer/Supplier Name</label>
+                <input type="text" formControlName="buyerName" placeholder="Select buyer/supplier">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Contract Period -->
+          <div class="form-section">
+            <h4>Contract Period</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Start Date *</label>
+                <input type="date" formControlName="startDate">
+              </div>
+              <div class="form-group">
+                <label>End Date *</label>
+                <input type="date" formControlName="endDate">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Financial Terms -->
+          <div class="form-section">
+            <h4>Financial Terms</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Total Value *</label>
+                <input type="number" formControlName="totalValue" placeholder="0" min="0">
+              </div>
+              <div class="form-group">
+                <label>Currency *</label>
+                <select formControlName="currency">
+                  <option value="NGN">NGN (₦)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Payment Terms *</label>
+              <input type="text" formControlName="paymentTerms" placeholder="e.g., Net 30 days, 50% advance">
+            </div>
+            
+            <div class="form-group">
+              <label>Quality Standards</label>
+              <textarea formControlName="qualityStandards" placeholder="Enter quality requirements..." rows="3"></textarea>
+            </div>
+          </div>
+          
+          <!-- Products/Services -->
+          <div class="form-section">
+            <h4>Products / Services</h4>
+            <div formArrayName="products">
+              <div *ngFor="let product of products.controls; let i = index" [formGroupName]="i" class="product-item">
+                <div class="product-header">
+                  <h5>Product {{i + 1}}</h5>
+                  <button type="button" class="btn btn-text" (click)="removeProduct(i)" *ngIf="products.length > 1">
+                    <app-x-circle-icon></app-x-circle-icon>
+                  </button>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Product Name *</label>
+                    <input type="text" formControlName="productName" placeholder="Enter product name">
+                  </div>
+                  <div class="form-group">
+                    <label>Quantity *</label>
+                    <input type="number" formControlName="quantity" placeholder="0" min="0">
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Unit *</label>
+                    <select formControlName="unit">
+                      <option value="kg">Kilograms (kg)</option>
+                      <option value="ton">Tons</option>
+                      <option value="bag">Bags</option>
+                      <option value="crate">Crates</option>
+                      <option value="liter">Liters</option>
+                      <option value="unit">Units</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Unit Price *</label>
+                    <input type="number" formControlName="unitPrice" placeholder="0" min="0">
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Quality Grade</label>
+                    <input type="text" formControlName="qualityGrade" placeholder="e.g., Grade A">
+                  </div>
+                  <div class="form-group">
+                    <label>Delivery Period</label>
+                    <input type="text" formControlName="deliveryPeriod" placeholder="e.g., Monthly">
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <button type="button" class="btn btn-outline" (click)="addProduct()">
+              <app-plus-icon></app-plus-icon>
+              <span>Add Product</span>
+            </button>
+          </div>
+          
+          <!-- Milestones -->
+          <div class="form-section">
+            <h4>Milestones</h4>
+            <div formArrayName="milestones">
+              <div *ngFor="let milestone of milestones.controls; let i = index" [formGroupName]="i" class="milestone-item">
+                <div class="milestone-header">
+                  <h5>Milestone {{i + 1}}</h5>
+                  <button type="button" class="btn btn-text" (click)="removeMilestone(i)">
+                    <app-x-circle-icon></app-x-circle-icon>
+                  </button>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Milestone Name *</label>
+                    <input type="text" formControlName="name" placeholder="Enter milestone name">
+                  </div>
+                  <div class="form-group">
+                    <label>Due Date *</label>
+                    <input type="date" formControlName="dueDate">
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label>Description</label>
+                  <textarea formControlName="description" placeholder="Enter milestone description..." rows="2"></textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label class="checkbox-group">
+                    <input type="checkbox" formControlName="isCritical">
+                    <span>Critical Milestone</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <button type="button" class="btn btn-outline" (click)="addMilestone()">
+              <app-plus-icon></app-plus-icon>
+              <span>Add Milestone</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Create Contract
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Contract Modal -->
+  <div *ngIf="showViewModal && selectedContract" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content view-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Contract Details</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Contract Header -->
+        <div class="contract-header">
+          <div class="contract-icon large">
+            <app-contract-icon></app-contract-icon>
+          </div>
+          <div class="contract-basic-info">
+            <h2>{{selectedContract.title}}</h2>
+            <div class="contract-number">{{selectedContract.contractNumber}}</div>
+            <div class="contract-status">
+              <span class="status-badge" [class]="getStatusClass(selectedContract.status)">
+                {{selectedContract.status | titlecase}}
+              </span>
+              <span class="type-badge" [class]="getTypeClass(selectedContract.type)">
+                {{getTypeLabel(selectedContract.type)}}
+              </span>
+            </div>
+            <div class="contract-dates">
+              <span class="date-item">
+                <app-calendar-icon></app-calendar-icon>
+                {{formatDate(selectedContract.startDate)}} - {{formatDate(selectedContract.endDate)}}
+              </span>
+              <span class="value-item">
+                <app-money-icons></app-money-icons>
+                {{formatCurrency(selectedContract.totalValue, selectedContract.currency)}}
+              </span>
+            </div>
+          </div>
+          <div class="contract-actions">
+            <button class="btn btn-outline" (click)="downloadContract()">
+              <app-download-contract-icon></app-download-contract-icon>
+              <span>Download</span>
+            </button>
+            <button class="btn btn-outline" (click)="printContract()">
+              <app-print-contract-icon></app-print-contract-icon>
+              <span>Print</span>
+            </button>
+            <button class="btn btn-primary" (click)="shareContract()">
+              <app-share-contract-icon></app-share-contract-icon>
+              <span>Share</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="profile-tabs">
+          <div class="tab" [class.active]="activeTab === 'overview'" (click)="activeTab = 'overview'">Overview</div>
+          <div class="tab" [class.active]="activeTab === 'deliveries'" (click)="activeTab = 'deliveries'">Deliveries</div>
+          <div class="tab" [class.active]="activeTab === 'milestones'" (click)="activeTab = 'milestones'">Milestones</div>
+          <div class="tab" [class.active]="activeTab === 'documents'" (click)="activeTab = 'documents'">Documents</div>
+          <div class="tab" [class.active]="activeTab === 'analytics'" (click)="activeTab = 'analytics'">Analytics</div>
+        </div>
+
+        <!-- Tab Contents -->
+        <div class="tab-content" *ngIf="activeTab === 'overview'">
+          <div class="info-grid">
+            <div class="info-section">
+              <h4>Parties</h4>
+              <div *ngIf="selectedContract.farmerName" class="info-item">
+                <strong>Farmer:</strong> {{selectedContract.farmerName}}
+              </div>
+              <div *ngIf="selectedContract.buyerName" class="info-item">
+                <strong>Buyer:</strong> {{selectedContract.buyerName}}
+              </div>
+              <div *ngIf="selectedContract.supplierName" class="info-item">
+                <strong>Supplier:</strong> {{selectedContract.supplierName}}
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Financial Terms</h4>
+              <div class="info-item">
+                <strong>Total Value:</strong> {{formatCurrency(selectedContract.totalValue, selectedContract.currency)}}
+              </div>
+              <div class="info-item">
+                <strong>Payment Terms:</strong> {{selectedContract.paymentTerms}}
+              </div>
+              <div class="info-item">
+                <strong>Currency:</strong> {{selectedContract.currency}}
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Contract Period</h4>
+              <div class="info-item">
+                <strong>Start Date:</strong> {{formatDate(selectedContract.startDate)}}
+              </div>
+              <div class="info-item">
+                <strong>End Date:</strong> {{formatDate(selectedContract.endDate)}}
+              </div>
+              <div class="info-item">
+                <strong>Duration:</strong> {{getDuration(selectedContract.startDate, selectedContract.endDate)}}
+              </div>
+              <div *ngIf="selectedContract.renewalReminderDate" class="info-item">
+                <strong>Renewal Reminder:</strong> {{formatDate(selectedContract.renewalReminderDate)}}
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Quality Standards</h4>
+              <div class="info-item">
+                {{selectedContract.qualityStandards || 'No quality standards specified'}}
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Products</h4>
+              <div *ngFor="let product of selectedContract.products" class="product-details">
+                <div class="product-name">{{product.productName}}</div>
+                <div class="product-specs">
+                  <span>{{product.quantity}} {{product.unit}}</span>
+                  <span>@ {{formatCurrency(product.unitPrice, selectedContract.currency)}}/{{product.unit}}</span>
+                  <span>Total: {{formatCurrency(product.quantity * product.unitPrice, selectedContract.currency)}}</span>
+                </div>
+                <div *ngIf="product.qualityGrade" class="product-grade">
+                  Grade: {{product.qualityGrade}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deliveries Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'deliveries'">
+          <div class="info-grid">
+            <div class="info-section">
+              <h4>Delivery Progress</h4>
+              <div class="fulfillment-summary">
+                <div class="fulfillment-stats">
+                  <div class="stat-item">
+                    <strong>Total Quantity:</strong> {{selectedContract.fulfillment.totalQuantity}}
+                  </div>
+                  <div class="stat-item">
+                    <strong>Delivered:</strong> {{selectedContract.fulfillment.deliveredQuantity}}
+                  </div>
+                  <div class="stat-item">
+                    <strong>Remaining:</strong> {{selectedContract.fulfillment.remainingQuantity}}
+                  </div>
+                  <div class="stat-item">
+                    <strong>Completion:</strong> {{selectedContract.fulfillment.completionPercentage}}%
+                  </div>
+                </div>
+                <div class="progress-bar large">
+                  <div class="progress-fill" [style.width.%]="selectedContract.fulfillment.completionPercentage"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-section full-width">
+              <h4>Delivery Schedule</h4>
+              <div class="deliveries-list">
+                <div *ngFor="let delivery of selectedContract.deliverySchedule" class="delivery-item">
+                  <div class="delivery-date">
+                    {{formatDate(delivery.scheduledDate)}}
+                    <span *ngIf="delivery.actualDate">(Actual: {{formatDate(delivery.actualDate)}})</span>
+                  </div>
+                  <div class="delivery-details">
+                    <span class="quantity">{{delivery.quantity}} units</span>
+                    <span class="status" [class]="delivery.status">{{delivery.status | titlecase}}</span>
+                  </div>
+                  <div *ngIf="delivery.notes" class="delivery-notes">
+                    {{delivery.notes}}
+                  </div>
+                </div>
+              </div>
+              
+              <div class="action-bar">
+                <button class="btn btn-primary" (click)="openDeliveryModal(selectedContract)">
+                  <app-truck-icon></app-truck-icon>
+                  <span>Record New Delivery</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Milestones Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'milestones'">
+          <div class="info-grid">
+            <div class="info-section full-width">
+              <h4>Contract Milestones</h4>
+              <div class="milestones-list">
+                <div *ngFor="let milestone of selectedContract.milestones" class="milestone-item" [class.completed]="milestone.status === 'completed'">
+                  <div class="milestone-header">
+                    <div class="milestone-name">
+                      <app-check-circle-contract-icon *ngIf="milestone.status === 'completed'"></app-check-circle-contract-icon>
+                      {{milestone.name}}
+                      <span *ngIf="milestone.isCritical" class="critical-badge">Critical</span>
+                    </div>
+                    <div class="milestone-status">
+                      <span class="status-badge" [class]="milestone.status">{{milestone.status | titlecase}}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="milestone-details">
+                    <div class="milestone-description">{{milestone.description}}</div>
+                    <div class="milestone-dates">
+                      <span>Due: {{formatDate(milestone.dueDate)}}</span>
+                      <span *ngIf="milestone.completedDate">Completed: {{formatDate(milestone.completedDate)}}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="milestone-actions" *ngIf="milestone.status !== 'completed'">
+                    <button class="btn btn-success" (click)="markMilestoneComplete(milestone.id)">
+                      Mark Complete
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="action-bar">
+                <button class="btn btn-primary" (click)="openMilestoneModal(selectedContract)">
+                  <app-plus-icon></app-plus-icon>
+                  <span>Add New Milestone</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documents Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'documents'">
+          <div class="info-grid">
+            <div class="info-section full-width">
+              <h4>Contract Documents</h4>
+              <div class="documents-grid">
+                <div class="document-card">
+                  <div class="document-icon">
+                    <app-document-icon></app-document-icon>
+                  </div>
+                  <div class="document-info">
+                    <div class="document-name">Signed Contract Agreement</div>
+                    <div class="document-type">PDF Document</div>
+                    <div class="document-date">Signed: {{selectedContract.signDate ? formatDate(selectedContract.signDate) : 'Not signed'}}</div>
+                  </div>
+                  <div class="document-actions">
+                    <button class="btn btn-text">
+                      <app-view-contract-icon></app-view-contract-icon>
+                      View
+                    </button>
+                    <button class="btn btn-text">
+                      <app-download-contract-icon></app-download-contract-icon>
+                      Download
+                    </button>
+                  </div>
+                </div>
+                
+                <div *ngFor="let attachment of selectedContract.attachments" class="document-card">
+                  <div class="document-icon">
+                    <app-file-icon></app-file-icon>
+                  </div>
+                  <div class="document-info">
+                    <div class="document-name">{{attachment.name}}</div>
+                    <div class="document-type">{{attachment.type | uppercase}}</div>
+                    <div class="document-date">Uploaded: {{formatDate(attachment.uploadDate)}}</div>
+                  </div>
+                  <div class="document-actions">
+                    <button class="btn btn-text">
+                      <app-view-contract-icon></app-view-contract-icon>
+                      View
+                    </button>
+                    <button class="btn btn-text">
+                      <app-download-contract-icon></app-download-contract-icon>
+                      Download
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="action-bar">
+                <button class="btn btn-primary">
+                  <app-upload-icon></app-upload-icon>
+                  <span>Upload Document</span>
+                </button>
+                <button class="btn btn-outline">
+                  <app-signature-icon></app-signature-icon>
+                  <span>Request Signature</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'analytics'">
+          <div class="info-grid">
+            <div class="info-section">
+              <h4>Performance Metrics</h4>
+              <div class="metric-card">
+                <div class="metric-value">{{selectedContract.fulfillment.completionPercentage}}%</div>
+                <div class="metric-label">Fulfillment Rate</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">{{calculateOnTimeDelivery(selectedContract)}}%</div>
+                <div class="metric-label">On-time Delivery</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-value">{{calculateMilestoneCompletion(selectedContract)}}%</div>
+                <div class="metric-label">Milestone Completion</div>
+              </div>
+            </div>
+
+            <div class="info-section full-width">
+              <h4>Delivery Timeline</h4>
+              <div class="timeline-placeholder">
+                <div class="timeline-icon">
+                  <app-analytics-icon></app-analytics-icon>
+                </div>
+                <div class="timeline-text">
+                  Delivery performance visualization would appear here
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="openRenewModal(selectedContract)">
+          <app-renew-icon></app-renew-icon>
+          <span>Renew Contract</span>
+        </button>
+        <button class="btn btn-outline" (click)="openEditModal(selectedContract)">
+          <app-edit-contract-icon></app-edit-contract-icon>
+          <span>Edit Contract</span>
+        </button>
+        <button class="btn btn-primary" (click)="downloadContract()">
+          <app-export-contract-icon></app-export-contract-icon>
+          <span>Generate Report</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteModal && selectedContract" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Deletion</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="warning-icon">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <h4>Are you sure you want to delete this contract?</h4>
+        <p>This will permanently delete <strong>{{selectedContract.title}}</strong> ({{selectedContract.contractNumber}}).</p>
+        <p class="warning-text">This action cannot be undone. All associated data will be removed.</p>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="deleteContract()">
+          Delete Contract
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Templates Modal -->
+  <div *ngIf="showTemplateModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content templates-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Contract Templates</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="templates-grid">
+          <div *ngFor="let template of templates" class="template-card" (click)="useTemplate(template)">
+            <div class="template-icon">
+              <app-template-icon></app-template-icon>
+            </div>
+            <div class="template-info">
+              <div class="template-name">{{template.name}}</div>
+              <div class="template-type">{{template.type | titlecase}}</div>
+              <div class="template-description">Standard contract template for {{template.category}} agreements</div>
+            </div>
+            <div class="template-actions">
+              <button class="btn btn-text">Use Template</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="empty-state" *ngIf="templates.length === 0">
+          <app-template-icon></app-template-icon>
+          <p>No templates available</p>
+          <button class="btn btn-outline">
+            <app-plus-icon></app-plus-icon>
+            <span>Create Template</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="showTemplateModal = false">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delivery Modal -->
+  <div *ngIf="showDeliveryModal && selectedContract" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Record Delivery</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="deliveryForm" (ngSubmit)="recordDelivery()">
+        <div class="modal-body">
+          <div class="form-section">
+            <h4>Delivery Details</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Delivery Date *</label>
+                <input type="date" formControlName="scheduledDate">
+              </div>
+              <div class="form-group">
+                <label>Quantity *</label>
+                <input type="number" formControlName="quantity" placeholder="0" min="0">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea formControlName="notes" placeholder="Enter delivery notes..." rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Record Delivery
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Milestone Modal -->
+  <div *ngIf="showMilestoneModal && selectedContract" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add Milestone</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="milestoneForm" (ngSubmit)="addMilestoneToContract()">
+        <div class="modal-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Milestone Name *</label>
+              <input type="text" formControlName="name" placeholder="Enter milestone name">
+            </div>
+            
+            <div class="form-group">
+              <label>Description</label>
+              <textarea formControlName="description" placeholder="Enter milestone description..." rows="3"></textarea>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Due Date *</label>
+                <input type="date" formControlName="dueDate">
+              </div>
+              <div class="form-group">
+                <label class="checkbox-group">
+                  <input type="checkbox" formControlName="isCritical">
+                  <span>Critical Milestone</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Add Milestone
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Filters Modal -->
+  <div *ngIf="showFiltersModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content filters-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Filter Contracts</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="filter-group">
+          <h4>Contract Type</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" value="all">
+              <span>All Types</span>
+            </label>
+            <label *ngFor="let type of contractTypes" class="filter-option">
+              <input type="radio" name="type" [(ngModel)]="typeFilter" [value]="type.value">
+              <span>{{type.label}}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Status</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="all">
+              <span>All Status</span>
+            </label>
+            <label *ngFor="let status of contractStatuses" class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" [value]="status.value">
+              <span class="status-badge" [class]="'status-' + status.value">{{status.label}}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Contract Period</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Start Date From</label>
+              <input type="date" [(ngModel)]="filters.startDate">
+            </div>
+            <div class="form-group">
+              <label>End Date To</label>
+              <input type="date" [(ngModel)]="filters.endDate">
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Contract Value</h4>
+          <div class="range-inputs">
+            <input type="number" [(ngModel)]="filters.minValue" placeholder="Min value" min="0">
+            <span>to</span>
+            <input type="number" [(ngModel)]="filters.maxValue" placeholder="Max value" min="0">
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">
+          Clear All
+        </button>
+        <button type="button" class="btn btn-primary" (click)="applyFilters()">
+          Apply Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div *ngIf="showExportModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content export-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Export Contracts</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="export-instructions">
+          <h4>Export Options</h4>
+          <p>Select the format and data to include in your export:</p>
+        </div>
+
+        <div class="export-options">
+          <div class="format-options">
+            <label class="format-option" [class.active]="true">
+              <div class="format-icon">
+                <app-file-icon></app-file-icon>
+              </div>
+              <div class="format-info">
+                <strong>CSV (.csv)</strong>
+                <span>Best for data analysis</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="export-filters">
+            <h4>Include in Export:</h4>
+            <div class="filter-options">
+              <label class="checkbox-option">
+                <input type="checkbox" checked>
+                <span>Basic contract information</span>
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" checked>
+                <span>Financial details</span>
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox">
+                <span>Delivery history</span>
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox">
+                <span>Milestone information</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" 
+                (click)="exportContracts()" 
+                [disabled]="isExporting">
+          {{isExporting ? 'Exporting...' : 'Export Contracts'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

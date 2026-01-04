@@ -817,6 +817,252 @@ export class ReceiptIcon {}
 })
 export class ShieldIcon {}
 
+// ... existing code ...
+
+// Add these new icons after the existing ones:
+
+// Contract-specific icons
+@Component({
+  selector: 'app-add-contract-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="16" y1="14" x2="12" y2="14"></line>
+    </svg>
+  `
+})
+export class AddContractIcon {}
+
+@Component({
+  selector: 'app-edit-contract-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    </svg>
+  `
+})
+export class EditContractIcon {}
+
+@Component({
+  selector: 'app-view-contract-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+      <line x1="16" y1="13" x2="8" y2="13"></line>
+      <line x1="16" y1="17" x2="8" y2="17"></line>
+      <polyline points="10 9 9 9 8 9"></polyline>
+      <circle cx="18" cy="15" r="1"></circle>
+    </svg>
+  `
+})
+export class ViewContractIcon {}
+
+@Component({
+  selector: 'app-delete-contract-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+      <line x1="10" y1="11" x2="10" y2="17"></line>
+      <line x1="14" y1="11" x2="14" y2="17"></line>
+    </svg>
+  `
+})
+export class DeleteContractIcon {}
+
+@Component({
+  selector: 'app-download-contract-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      <polyline points="7 10 12 15 17 10"></polyline>
+      <line x1="12" y1="15" x2="12" y2="3"></line>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+    </svg>
+  `
+})
+export class DownloadContractIcon {}
+
+@Component({
+  selector: 'app-print-contract-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9"></polyline>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+      <rect x="6" y="14" width="12" height="8"></rect>
+    </svg>
+  `
+})
+export class PrintContractIcon {}
+
+@Component({
+  selector: 'app-share-contract-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="18" cy="5" r="3"></circle>
+      <circle cx="6" cy="12" r="3"></circle>
+      <circle cx="18" cy="19" r="3"></circle>
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+    </svg>
+  `
+})
+export class ShareContractIcon {}
+
+@Component({
+  selector: 'app-export-contract-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+      <path d="M16 13H8"></path>
+      <path d="M16 17H8"></path>
+      <path d="M10 9H8"></path>
+      <path d="M12 22v-4"></path>
+      <path d="m17 17 5 5"></path>
+      <path d="m17 22 5-5"></path>
+    </svg>
+  `
+})
+export class ExportContractIcon {}
+
+// Additional icons needed for contracts
+@Component({
+  selector: 'app-renew-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <polyline points="1 20 1 14 7 14"></polyline>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+    </svg>
+  `
+})
+export class RenewIcon {}
+
+@Component({
+  selector: 'app-money-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="1" x2="12" y2="23"></line>
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+    </svg>
+  `
+})
+export class MoneyIcon {}
+
+@Component({
+  selector: 'app-money-icons',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+      <circle cx="12" cy="12" r="2"></circle>
+      <path d="M6 12h.01M18 12h.01"></path>
+    </svg>
+  `
+})
+export class MoneyIcons {}
+
+@Component({
+  selector: 'app-check-circle-contract-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+  `
+})
+export class CheckCircleContractIcon {}
+
+@Component({
+  selector: 'app-template-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="3" y1="9" x2="21" y2="9"></line>
+      <line x1="9" y1="21" x2="9" y2="9"></line>
+    </svg>
+  `
+})
+export class TemplateIcon {}
+
+@Component({
+  selector: 'app-document-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+    </svg>
+  `
+})
+export class DocumentIcon {}
+
+@Component({
+  selector: 'app-analytics-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"></line>
+      <line x1="12" y1="20" x2="12" y2="4"></line>
+      <line x1="6" y1="20" x2="6" y2="14"></line>
+    </svg>
+  `
+})
+export class AnalyticsIcon {}
+
+@Component({
+  selector: 'app-signature-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path>
+      <line x1="16" y1="8" x2="2" y2="22"></line>
+      <line x1="17.5" y1="15" x2="9" y2="15"></line>
+    </svg>
+  `
+})
+export class SignatureIcon {}
+
+@Component({
+  selector: 'app-filter-contract-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+    </svg>
+  `
+})
+export class FilterContractIcon {}
+
+@Component({
+  selector: 'app-status-icon',
+  standalone: true,
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+  `
+})
+export class StatusIcon {}
+ 
 // Export all icons
 export const SVG_ICONS = [
   DashboardIcon,
@@ -879,5 +1125,24 @@ export const SVG_ICONS = [
   PercentIcon,
   CalculatorIcon,
   ReceiptIcon,
-  ShieldIcon
+  ShieldIcon,
+  AddContractIcon,
+  EditContractIcon,
+  ViewContractIcon,
+  DeleteContractIcon,
+  DownloadContractIcon,
+  PrintContractIcon,
+  ShareContractIcon,
+  ExportContractIcon,
+  RenewIcon,
+  MoneyIcon,
+  MoneyIcons,
+  CalendarIcon,
+  CheckCircleContractIcon,
+  TemplateIcon,
+  DocumentIcon,
+  AnalyticsIcon,
+  SignatureIcon,
+  FilterContractIcon,
+  StatusIcon,
 ];

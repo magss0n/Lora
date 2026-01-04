@@ -1,1 +1,1344 @@
-<p>sales-payment works!</p>
+<div class="sales-payment">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <!-- Total Revenue -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon primary">
+          <app-sales-icon></app-sales-icon>
+        </div>
+        <div class="stat-trend positive">+15%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Revenue</h3>
+        <div class="value">{{formatCurrency(stats.totalRevenue)}}</div>
+        <div class="stat-change positive">
+          <span>This month: {{formatCurrency(stats.thisMonthSales)}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Sales -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon success">
+          <app-package-icon></app-package-icon>
+        </div>
+        <div class="stat-trend positive">+8%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Sales</h3>
+        <div class="value">{{stats.totalSales}}</div>
+        <div class="stat-change positive">
+          <span>{{stats.thisWeekSales}} this week</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Payments -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon warning">
+          <app-clock-icon></app-clock-icon>
+        </div>
+        <div class="stat-trend negative">-5%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Pending Payments</h3>
+        <div class="value">{{formatCurrency(stats.pendingPayments)}}</div>
+        <div class="stat-change negative">
+          <span>{{stats.statusBreakdown.partially_paid}} partially paid</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Average Sale -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon accent">
+          <app-trending-up-icon></app-trending-up-icon>
+        </div>
+        <div class="stat-trend positive">+12%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Average Sale</h3>
+        <div class="value">{{formatCurrency(stats.averageSaleValue)}}</div>
+        <div class="stat-change positive">
+          <span>From last month</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button class="tab-btn" [class.active]="activeTab === 'sales'" (click)="activeTab = 'sales'">
+      <app-sales-icon></app-sales-icon>
+      <span>Sales Transactions</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'payments'" (click)="activeTab = 'payments'">
+      <app-credit-card-icon></app-credit-card-icon>
+      <span>Payment Processing</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'farmer-payments'" (click)="activeTab = 'farmer-payments'">
+      <app-users-icon></app-users-icon>
+      <span>Farmer Payments</span>
+    </button>
+  </div>
+
+  <!-- Sales Tab Content -->
+  <div *ngIf="activeTab === 'sales'" class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">Sales Transactions</h2>
+      
+      <div class="action-toolbar">
+        <!-- Search -->
+        <div class="search-box">
+          <app-search-icon></app-search-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (keyup.enter)="onSearch()"
+            placeholder="Search by ID, customer, phone..."
+          >
+          <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()">
+            <app-x-circle-icon></app-x-circle-icon>
+          </button>
+        </div>
+
+        <!-- Filter Button -->
+        <button class="btn btn-outline" (click)="showFiltersModal = true">
+          <app-filter-icon></app-filter-icon>
+          <span>Filter</span>
+        </button>
+
+        <!-- Primary Actions -->
+        <button class="btn btn-primary" (click)="openSaleModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>New Sale</span>
+        </button>
+
+        <div class="dropdown">
+          <button class="btn btn-outline">
+            <app-export-icon></app-export-icon>
+            <span>Export</span>
+          </button>
+          <div class="dropdown-menu">
+            <button class="dropdown-item" (click)="openExportModal()">
+              <app-export-icon></app-export-icon>
+              <span>Export Report</span>
+            </button>
+            <button class="dropdown-item" (click)="openImportModal()">
+              <app-import-icon></app-import-icon>
+              <span>Import Sales</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales Table -->
+    <div class="table-container">
+      <table class="sales-table">
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Payment Method</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sale of filteredSales" class="sale-row">
+            <td class="transaction-id">
+              <div class="id-text">{{sale.transactionId}}</div>
+              <div class="sale-type">{{getCustomerTypeDisplay(sale.customerType)}}</div>
+            </td>
+            
+            <td class="customer-info">
+              <div class="customer-name">{{sale.customerName}}</div>
+              <div *ngIf="sale.customerPhone" class="customer-phone">{{sale.customerPhone}}</div>
+              <div *ngIf="sale.customerEmail" class="customer-email">{{sale.customerEmail}}</div>
+            </td>
+            
+            <td class="sale-date">
+              <div class="date">{{formatDate(sale.saleDate)}}</div>
+              <div class="time">{{formatDateTime(sale.saleDate).split(',')[1]}}</div>
+            </td>
+            
+            <td class="items-info">
+              <div class="items-count">{{sale.items.length}} item(s)</div>
+              <div class="items-preview">
+  {{getItemsPreview(sale.items)}}
+  <span *ngIf="sale.items.length > 2">...</span>
+</div>
+            </td>
+            
+            <td class="payment-method">
+              <span class="method-badge" [class]="'method-' + sale.paymentMethod">
+                {{getPaymentMethodDisplay(sale.paymentMethod)}}
+              </span>
+            </td>
+            
+            <td class="amount-info">
+              <div class="total-amount">{{formatCurrency(sale.totalAmount)}}</div>
+              <div *ngIf="sale.outstandingBalance > 0" class="balance-amount">
+                Balance: {{formatCurrency(sale.outstandingBalance)}}
+              </div>
+            </td>
+            
+            <td class="status-info">
+              <span class="status-badge" [class]="getStatusClass(sale.status)">
+                {{getStatusDisplay(sale.status)}}
+              </span>
+            </td>
+            
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button class="action-btn view-btn" (click)="openViewSaleModal(sale)" title="View Details">
+                  <app-eye-icon></app-eye-icon>
+                </button>
+                <button class="action-btn edit-btn" (click)="openEditSaleModal(sale)" title="Edit">
+                  <app-edit-icon></app-edit-icon>
+                </button>
+                <button *ngIf="sale.outstandingBalance > 0" class="action-btn payment-btn" 
+                        (click)="openPaymentModal(sale)" title="Add Payment">
+                  <app-credit-card-icon></app-credit-card-icon>
+                </button>
+                <button class="action-btn receipt-btn" (click)="openReceiptModal(sale)" title="Receipt">
+                  <app-download-icon></app-download-icon>
+                </button>
+                <button class="action-btn delete-btn" (click)="openDeleteSaleModal(sale)" title="Cancel">
+                  <app-trash-icon></app-trash-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredSales.length === 0" class="empty-state">
+        <app-sales-icon></app-sales-icon>
+        <p>No sales found</p>
+        <button class="btn btn-primary" (click)="openSaleModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>Record Your First Sale</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        Previous
+      </button>
+      
+      <div class="page-numbers">
+        <button *ngFor="let page of getPageNumbers()" 
+                class="page-number" 
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)">
+          {{page}}
+        </button>
+      </div>
+      
+      <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        Next
+      </button>
+      
+      <div class="page-info">
+        Showing {{(currentPage - 1) * itemsPerPage + 1}}-{{getEndIndex()}} of {{totalItems}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Payments Tab Content -->
+  <div *ngIf="activeTab === 'payments'" class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">Payment Processing</h2>
+      <div class="action-toolbar">
+        <div class="search-box">
+          <app-search-icon></app-search-icon>
+          <input type="text" placeholder="Search payments...">
+        </div>
+      </div>
+    </div>
+
+    <!-- Payments Table -->
+    <div class="table-container">
+      <table class="payments-table">
+        <thead>
+          <tr>
+            <th>Payment ID</th>
+            <th>Sale ID</th>
+            <th>Date</th>
+            <th>Method</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Validated</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let payment of payments" class="payment-row">
+            <td class="payment-id">{{payment.paymentId}}</td>
+            <td class="sale-id">{{payment.saleId}}</td>
+            <td class="payment-date">{{formatDateTime(payment.paymentDate)}}</td>
+            <td class="payment-method">
+              <span class="method-badge" [class]="'method-' + payment.paymentMethod">
+                {{getPaymentMethodDisplay(payment.paymentMethod)}}
+              </span>
+            </td>
+            <td class="payment-amount">{{formatCurrency(payment.amount)}}</td>
+            <td class="payment-status">
+              <span class="status-badge" [class]="getStatusClass(payment.status)">
+                {{getStatusDisplay(payment.status)}}
+              </span>
+            </td>
+            <td class="validation-status">
+              <span *ngIf="payment.validated" class="validated-badge validated">
+                <app-check-circle-icon></app-check-circle-icon>
+                Validated
+              </span>
+              <span *ngIf="!payment.validated" class="validated-badge pending">
+                <app-clock-icon></app-clock-icon>
+                Pending
+              </span>
+            </td>
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button *ngIf="!payment.validated" class="action-btn validate-btn" 
+                        (click)="openValidatePaymentModal(payment)" title="Validate">
+                  <app-check-circle-icon></app-check-circle-icon>
+                </button>
+                <button class="action-btn receipt-btn" title="Download Receipt">
+                  <app-download-icon></app-download-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Farmer Payments Tab Content -->
+  <div *ngIf="activeTab === 'farmer-payments'" class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">Farmer Payments</h2>
+      <div class="action-toolbar">
+        <button class="btn btn-primary" (click)="openFarmerPaymentModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>Calculate Payment</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Farmer Payments Table -->
+    <div class="table-container">
+      <table class="farmer-payments-table">
+        <thead>
+          <tr>
+            <th>Payment ID</th>
+            <th>Farmer</th>
+            <th>Period</th>
+            <th>Deliveries</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let payment of farmerPayments" class="farmer-payment-row">
+            <td class="payment-id">{{payment.paymentId}}</td>
+            <td class="farmer-name">{{payment.farmerName}}</td>
+            <td class="period">
+              <div>{{formatDate(payment.periodStart)}} - {{formatDate(payment.periodEnd)}}</div>
+            </td>
+            <td class="deliveries">
+              <div class="delivery-count">{{payment.totalDeliveries}} deliveries</div>
+              <div class="weight">{{payment.totalWeight}} kg</div>
+            </td>
+            <td class="payment-details">
+              <div class="total-amount">{{formatCurrency(payment.totalAmount)}}</div>
+              <div *ngIf="payment.deductions" class="breakdown">
+                <small>Deductions: {{formatCurrency(payment.deductions.microcreditRepayment + payment.deductions.cooperativeDues)}}</small>
+              </div>
+            </td>
+            <td class="payment-status">
+              <span class="status-badge" [class]="getStatusClass(payment.paymentStatus)">
+                {{getStatusDisplay(payment.paymentStatus)}}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button *ngIf="payment.paymentStatus === 'pending' || payment.paymentStatus === 'processing'" 
+                        class="action-btn process-btn" 
+                        (click)="openProcessPaymentModal(payment)" 
+                        title="Process Payment">
+                  <app-credit-card-icon></app-credit-card-icon>
+                </button>
+                <button *ngIf="payment.receiptNumber" class="action-btn receipt-btn" title="Receipt">
+                  <app-download-icon></app-download-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modals -->
+
+  <!-- New Sale Modal -->
+  <div *ngIf="showSaleModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content sale-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Record New Sale</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="saleForm" (ngSubmit)="createSale()">
+        <div class="modal-body">
+          <!-- Customer Information -->
+          <div class="form-section">
+            <h4>Customer Information</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Customer Name *</label>
+                <input type="text" formControlName="customerName" placeholder="Enter customer name">
+              </div>
+              <div class="form-group">
+                <label>Customer Type *</label>
+                <select formControlName="customerType">
+                  <option value="farmer">Farmer</option>
+                  <option value="wholesaler">Wholesaler</option>
+                  <option value="retailer">Retailer</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" formControlName="customerPhone" placeholder="+2348012345678">
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" formControlName="customerEmail" placeholder="customer@email.com">
+              </div>
+            </div>
+          </div>
+
+          <!-- Sale Items -->
+          <div class="form-section">
+            <div class="section-header">
+              <h4>Sale Items</h4>
+              <button type="button" class="btn btn-outline" (click)="addSaleItem()">
+                <app-plus-icon></app-plus-icon>
+                <span>Add Item</span>
+              </button>
+            </div>
+            
+            <div formArrayName="items" class="items-container">
+              <div *ngFor="let item of items.controls; let i = index" [formGroupName]="i" class="item-row">
+                <div class="item-header">
+                  <h5>Item {{i + 1}}</h5>
+                  <button *ngIf="items.length > 1" type="button" class="btn btn-text" (click)="removeSaleItem(i)">
+                    <app-trash-icon></app-trash-icon>
+                  </button>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Product *</label>
+                    <select formControlName="productId" (change)="onProductSelect(availableProducts[i])">
+                      <option value="">Select Product</option>
+                      <option *ngFor="let product of availableProducts" [value]="product.productId">
+                        {{product.productName}} ({{product.currentStock}} {{product.unit}})
+                      </option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Quantity *</label>
+                    <input type="number" formControlName="quantity" min="1" placeholder="0">
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Unit Price *</label>
+                    <input type="number" formControlName="unitPrice" min="0" placeholder="0.00">
+                  </div>
+                  <div class="form-group">
+                    <label>Unit</label>
+                    <select formControlName="unit">
+                      <option value="kg">Kilograms (kg)</option>
+                      <option value="g">Grams (g)</option>
+                      <option value="tonnes">Tonnes</option>
+                      <option value="bags">Bags</option>
+                      <option value="crates">Crates</option>
+                      <option value="pieces">Pieces</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="items.length === 0" class="no-items">
+              <p>No items added. Click "Add Item" to start.</p>
+            </div>
+            
+            <div class="total-summary">
+              <div class="total-item">
+                <span>Subtotal:</span>
+                <span>{{formatCurrency(calculateTotalAmount(saleForm.value.items || []))}}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Information -->
+          <div class="form-section">
+            <h4>Payment Information</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Payment Method *</label>
+                <select formControlName="paymentMethod">
+                  <option value="cash">Cash</option>
+                  <option value="mobile_money">Mobile Money</option>
+                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="credit">Credit</option>
+                  <option value="split">Split Payment</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Amount Paid *</label>
+                <input type="number" formControlName="amountPaid" min="0" 
+                       [max]="calculateTotalAmount(saleForm.value.items || [])" 
+                       placeholder="0.00">
+              </div>
+            </div>
+
+            <!-- Mobile Money Details -->
+            <div *ngIf="saleForm.get('paymentMethod')?.value === 'mobile_money'" class="payment-details">
+              <h5>Mobile Money Details</h5>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Provider</label>
+                  <select formControlName="mobileMoneyDetails.provider">
+                    <option value="mtn">MTN</option>
+                    <option value="airtel">Airtel</option>
+                    <option value="glo">Glo</option>
+                    <option value="9mobile">9mobile</option>
+                    <option value="vodafone">Vodafone</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" formControlName="mobileMoneyDetails.phoneNumber" placeholder="Phone number">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Reference Number</label>
+                <input type="text" formControlName="mobileMoneyDetails.reference" placeholder="Transaction reference">
+              </div>
+            </div>
+
+            <!-- Bank Transfer Details -->
+            <div *ngIf="saleForm.get('paymentMethod')?.value === 'bank_transfer'" class="payment-details">
+              <h5>Bank Transfer Details</h5>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Bank Name</label>
+                  <input type="text" formControlName="bankTransferDetails.bankName" placeholder="Bank name">
+                </div>
+                <div class="form-group">
+                  <label>Account Number</label>
+                  <input type="text" formControlName="bankTransferDetails.accountNumber" placeholder="Account number">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Reference Number</label>
+                <input type="text" formControlName="bankTransferDetails.reference" placeholder="Transaction reference">
+              </div>
+            </div>
+
+            <!-- Split Payment Details -->
+            <div *ngIf="saleForm.get('paymentMethod')?.value === 'split'" class="payment-details">
+              <h5>Split Payment Details</h5>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Cash Amount</label>
+                  <input type="number" formControlName="splitPayment.cashAmount" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label>Mobile Money Amount</label>
+                  <input type="number" formControlName="splitPayment.mobileAmount" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label>Bank Transfer Amount</label>
+                  <input type="number" formControlName="splitPayment.bankAmount" min="0" placeholder="0.00">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-section">
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea formControlName="notes" rows="3" placeholder="Any additional notes..."></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Record Sale
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Sale Modal -->
+  <div *ngIf="showViewSaleModal && selectedSale" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content view-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Sale Details - {{selectedSale.transactionId}}</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Sale Header -->
+        <div class="sale-header">
+          <div class="sale-info">
+            <h2>{{formatCurrency(selectedSale.totalAmount)}}</h2>
+            <div class="sale-details">
+              <div class="detail-item">
+                <strong>Transaction ID:</strong> {{selectedSale.transactionId}}
+              </div>
+              <div class="detail-item">
+                <strong>Date:</strong> {{formatDateTime(selectedSale.saleDate)}}
+              </div>
+              <div class="detail-item">
+                <strong>Status:</strong> 
+                <span class="status-badge" [class]="getStatusClass(selectedSale.status)">
+                  {{getStatusDisplay(selectedSale.status)}}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="payment-status">
+            <div class="payment-summary">
+              <div class="summary-item">
+                <span>Total Amount:</span>
+                <span>{{formatCurrency(selectedSale.totalAmount)}}</span>
+              </div>
+              <div class="summary-item">
+                <span>Amount Paid:</span>
+                <span class="paid">{{formatCurrency(selectedSale.amountPaid)}}</span>
+              </div>
+              <div class="summary-item" *ngIf="selectedSale.outstandingBalance > 0">
+                <span>Outstanding:</span>
+                <span class="outstanding">{{formatCurrency(selectedSale.outstandingBalance)}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="info-section">
+          <h4>Customer Information</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <strong>Name:</strong> {{selectedSale.customerName}}
+            </div>
+            <div class="info-item">
+              <strong>Type:</strong> {{getCustomerTypeDisplay(selectedSale.customerType)}}
+            </div>
+            <div class="info-item" *ngIf="selectedSale.customerPhone">
+              <strong>Phone:</strong> {{selectedSale.customerPhone}}
+            </div>
+            <div class="info-item" *ngIf="selectedSale.customerEmail">
+              <strong>Email:</strong> {{selectedSale.customerEmail}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Items List -->
+        <div class="info-section">
+          <h4>Sale Items</h4>
+          <div class="items-table">
+            <div class="table-header">
+              <div class="col-product">Product</div>
+              <div class="col-quantity">Quantity</div>
+              <div class="col-price">Unit Price</div>
+              <div class="col-total">Total</div>
+            </div>
+            <div *ngFor="let item of selectedSale.items" class="table-row">
+              <div class="col-product">
+                <div class="product-name">{{item.productName}}</div>
+                <div class="product-type">{{item.productType | titlecase}}</div>
+              </div>
+              <div class="col-quantity">
+                {{item.quantity}} {{item.unit}}
+              </div>
+              <div class="col-price">
+                {{formatCurrency(item.unitPrice)}}
+              </div>
+              <div class="col-total">
+                {{formatCurrency(item.totalPrice)}}
+              </div>
+            </div>
+            <div class="table-footer">
+              <div class="total-row">
+                <div class="label">Total:</div>
+                <div class="value">{{formatCurrency(selectedSale.totalAmount)}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Information -->
+        <div class="info-section">
+          <h4>Payment Information</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <strong>Payment Method:</strong> {{getPaymentMethodDisplay(selectedSale.paymentMethod)}}
+            </div>
+            <div class="info-item" *ngIf="selectedSale.mobileMoneyDetails">
+              <strong>Mobile Money:</strong> {{selectedSale.mobileMoneyDetails.provider | uppercase}} ({{selectedSale.mobileMoneyDetails.phoneNumber}})
+            </div>
+            <div class="info-item" *ngIf="selectedSale.bankTransferDetails">
+              <strong>Bank Transfer:</strong> {{selectedSale.bankTransferDetails.bankName}} ({{selectedSale.bankTransferDetails.accountNumber}})
+            </div>
+            <div class="info-item" *ngIf="selectedSale.notes">
+              <strong>Notes:</strong> {{selectedSale.notes}}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="downloadReceipt()">
+          <app-download-icon></app-download-icon>
+          <span>Download Receipt</span>
+        </button>
+        <button *ngIf="selectedSale.outstandingBalance > 0" class="btn btn-primary" 
+                (click)="openPaymentModal(selectedSale)">
+          <app-credit-card-icon></app-credit-card-icon>
+          <span>Record Payment</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Payment Modal -->
+  <div *ngIf="showPaymentModal && selectedSale" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content payment-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Record Payment - {{selectedSale.transactionId}}</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="paymentForm" (ngSubmit)="createPayment()">
+        <div class="modal-body">
+          <div class="payment-summary">
+            <div class="summary-item">
+              <span>Total Sale Amount:</span>
+              <span>{{formatCurrency(selectedSale.totalAmount)}}</span>
+            </div>
+            <div class="summary-item">
+              <span>Already Paid:</span>
+              <span>{{formatCurrency(selectedSale.amountPaid)}}</span>
+            </div>
+            <div class="summary-item outstanding">
+              <span>Outstanding Balance:</span>
+              <span>{{formatCurrency(selectedSale.outstandingBalance)}}</span>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-group">
+              <label>Payment Amount *</label>
+              <input type="number" formControlName="amount" 
+                     [max]="selectedSale.outstandingBalance" 
+                     min="1" placeholder="0.00">
+            </div>
+            
+            <div class="form-group">
+              <label>Payment Method *</label>
+              <select formControlName="paymentMethod">
+                <option value="cash">Cash</option>
+                <option value="mobile_money">Mobile Money</option>
+                <option value="bank_transfer">Bank Transfer</option>
+              </select>
+            </div>
+
+            <!-- Mobile Money Details -->
+            <div *ngIf="paymentForm.get('paymentMethod')?.value === 'mobile_money'" class="payment-details">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Provider</label>
+                  <select formControlName="mobileMoneyDetails.provider">
+                    <option value="mtn">MTN</option>
+                    <option value="airtel">Airtel</option>
+                    <option value="glo">Glo</option>
+                    <option value="9mobile">9mobile</option>
+                    <option value="vodafone">Vodafone</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" formControlName="mobileMoneyDetails.phoneNumber" placeholder="Phone number">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Reference Number</label>
+                <input type="text" formControlName="mobileMoneyDetails.reference" placeholder="Transaction reference">
+              </div>
+            </div>
+
+            <!-- Bank Transfer Details -->
+            <div *ngIf="paymentForm.get('paymentMethod')?.value === 'bank_transfer'" class="payment-details">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Bank Name</label>
+                  <input type="text" formControlName="bankTransferDetails.bankName" placeholder="Bank name">
+                </div>
+                <div class="form-group">
+                  <label>Account Number</label>
+                  <input type="text" formControlName="bankTransferDetails.accountNumber" placeholder="Account number">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Reference Number</label>
+                <input type="text" formControlName="bankTransferDetails.reference" placeholder="Transaction reference">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea formControlName="notes" rows="2" placeholder="Payment notes..."></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Record Payment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Validate Payment Modal -->
+  <div *ngIf="showValidatePaymentModal && selectedPayment" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content validate-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Validate Payment</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="validation-info">
+          <div class="info-item">
+            <strong>Payment ID:</strong> {{selectedPayment.paymentId}}
+          </div>
+          <div class="info-item">
+            <strong>Amount:</strong> {{formatCurrency(selectedPayment.amount)}}
+          </div>
+          <div class="info-item">
+            <strong>Method:</strong> {{getPaymentMethodDisplay(selectedPayment.paymentMethod)}}
+          </div>
+          <div class="info-item" *ngIf="selectedPayment.mobileMoneyDetails">
+            <strong>Mobile Money:</strong> {{selectedPayment.mobileMoneyDetails.reference}}
+          </div>
+          <div class="info-item" *ngIf="selectedPayment.bankTransferDetails">
+            <strong>Bank Transfer:</strong> {{selectedPayment.bankTransferDetails.reference}}
+          </div>
+        </div>
+        
+        <div class="warning-message">
+          <app-alert-icon></app-alert-icon>
+          <p>Are you sure you want to validate this payment? This action confirms the payment has been received.</p>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="validatePayment()">
+          Validate Payment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Farmer Payment Modal -->
+  <div *ngIf="showFarmerPaymentModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content farmer-payment-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Calculate Farmer Payment</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="farmerPaymentForm" (ngSubmit)="calculateFarmerPayment()">
+        <div class="modal-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Farmer ID *</label>
+              <input type="text" formControlName="farmerId" placeholder="Enter farmer ID">
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Period Start *</label>
+                <input type="date" formControlName="periodStart">
+              </div>
+              <div class="form-group">
+                <label>Period End *</label>
+                <input type="date" formControlName="periodEnd">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Farmer Name</label>
+              <input type="text" formControlName="farmerName" placeholder="Farmer name (auto-filled)">
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Calculate Payment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Process Farmer Payment Modal -->
+  <div *ngIf="showProcessPaymentModal && selectedFarmerPayment" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content process-payment-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Process Farmer Payment</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="payment-details">
+          <div class="detail-item">
+            <strong>Payment ID:</strong> {{selectedFarmerPayment.paymentId}}
+          </div>
+          <div class="detail-item">
+            <strong>Farmer:</strong> {{selectedFarmerPayment.farmerName}}
+          </div>
+          <div class="detail-item">
+            <strong>Period:</strong> {{formatDate(selectedFarmerPayment.periodStart)}} - {{formatDate(selectedFarmerPayment.periodEnd)}}
+          </div>
+          <div class="detail-item">
+            <strong>Total Amount:</strong> {{formatCurrency(selectedFarmerPayment.totalAmount)}}
+          </div>
+          <div *ngIf="selectedFarmerPayment.deductions" class="detail-item">
+            <strong>Deductions:</strong> {{formatCurrency(selectedFarmerPayment.deductions.microcreditRepayment + selectedFarmerPayment.deductions.cooperativeDues)}}
+          </div>
+        </div>
+        
+        <div class="payment-methods">
+          <h4>Select Payment Method</h4>
+          <div class="method-options">
+            <button type="button" class="method-option" (click)="processFarmerPayment('cash')">
+              <div class="method-icon">
+                <app-credit-card-icon></app-credit-card-icon>
+              </div>
+              <div class="method-info">
+                <strong>Cash</strong>
+                <span>Physical cash payment</span>
+              </div>
+            </button>
+            
+            <button type="button" class="method-option" (click)="processFarmerPayment('mobile_money')">
+              <div class="method-icon">
+                <app-credit-card-icon></app-credit-card-icon>
+              </div>
+              <div class="method-info">
+                <strong>Mobile Money</strong>
+                <span>Digital mobile payment</span>
+              </div>
+            </button>
+            
+            <button type="button" class="method-option" (click)="processFarmerPayment('bank_transfer')">
+              <div class="method-icon">
+                <app-credit-card-icon></app-credit-card-icon>
+              </div>
+              <div class="method-info">
+                <strong>Bank Transfer</strong>
+                <span>Direct bank transfer</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Sale Modal -->
+  <div *ngIf="showDeleteSaleModal && selectedSale" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Cancel Sale</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="warning-icon">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <h4>Are you sure you want to cancel this sale?</h4>
+        <p>This will mark sale <strong>{{selectedSale.transactionId}}</strong> as cancelled.</p>
+        <p class="warning-text" *ngIf="selectedSale.amountPaid > 0">
+          Warning: {{formatCurrency(selectedSale.amountPaid)}} has already been paid. Refunds may be required.
+        </p>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="deleteSale()">
+          Cancel Sale
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Modal -->
+  <div *ngIf="showFiltersModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content filters-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Filter Sales</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="filter-group">
+          <h4>Date Range</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="dateFilter" [(ngModel)]="dateFilter" value="all">
+              <span>All Time</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="dateFilter" [(ngModel)]="dateFilter" value="today">
+              <span>Today</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="dateFilter" [(ngModel)]="dateFilter" value="week">
+              <span>This Week</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="dateFilter" [(ngModel)]="dateFilter" value="month">
+              <span>This Month</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Status</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="all">
+              <span>All Status</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="pending">
+              <span class="status-badge status-pending">Pending</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="confirmed">
+              <span class="status-badge status-confirmed">Confirmed</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="partially_paid">
+              <span class="status-badge status-partial">Partially Paid</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="fully_paid">
+              <span class="status-badge status-completed">Fully Paid</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Payment Method</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="paymentMethod" [(ngModel)]="paymentMethodFilter" value="all">
+              <span>All Methods</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="paymentMethod" [(ngModel)]="paymentMethodFilter" value="cash">
+              <span>Cash</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="paymentMethod" [(ngModel)]="paymentMethodFilter" value="mobile_money">
+              <span>Mobile Money</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="paymentMethod" [(ngModel)]="paymentMethodFilter" value="bank_transfer">
+              <span>Bank Transfer</span>
+            </label>
+            <label class="filter-option">
+              <input type="radio" name="paymentMethod" [(ngModel)]="paymentMethodFilter" value="credit">
+              <span>Credit</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Amount Range</h4>
+          <div class="range-inputs">
+            <input type="number" [(ngModel)]="filters.minAmount" placeholder="Min amount" min="0">
+            <span>to</span>
+            <input type="number" [(ngModel)]="filters.maxAmount" placeholder="Max amount" min="0">
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">
+          Clear All
+        </button>
+        <button type="button" class="btn btn-primary" (click)="applyFilters()">
+          Apply Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div *ngIf="showExportModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content export-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Export Sales Report</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="export-options">
+          <h4>Export Format</h4>
+          <div class="format-options">
+            <label class="format-option" [class.active]="exportFormat === 'excel'">
+              <input type="radio" name="exportFormat" [(ngModel)]="exportFormat" value="excel">
+              <div class="format-icon">
+                <app-file-icon></app-file-icon>
+              </div>
+              <div class="format-info">
+                <strong>Excel (.xlsx)</strong>
+                <span>Best for data analysis</span>
+              </div>
+            </label>
+            
+            <label class="format-option" [class.active]="exportFormat === 'pdf'">
+              <input type="radio" name="exportFormat" [(ngModel)]="exportFormat" value="pdf">
+              <div class="format-icon">
+                <app-file-icon></app-file-icon>
+              </div>
+              <div class="format-info">
+                <strong>PDF (.pdf)</strong>
+                <span>Best for reports</span>
+              </div>
+            </label>
+            
+            <label class="format-option" [class.active]="exportFormat === 'csv'">
+              <input type="radio" name="exportFormat" [(ngModel)]="exportFormat" value="csv">
+              <div class="format-icon">
+                <app-file-icon></app-file-icon>
+              </div>
+              <div class="format-info">
+                <strong>CSV (.csv)</strong>
+                <span>Best for data exchange</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="exportData()" [disabled]="isExporting">
+          {{isExporting ? 'Exporting...' : 'Export Report'}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div *ngIf="showImportModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content import-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Import Sales Data</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="import-instructions">
+          <h4>Instructions:</h4>
+          <ul>
+            <li>Download the template file for correct formatting</li>
+            <li>Fill in required fields: Customer Name, Items, Amount</li>
+            <li>Save file as CSV or Excel format</li>
+            <li>Maximum file size: 10MB</li>
+          </ul>
+        </div>
+
+        <div class="file-upload-area" [class.dragover]="isDragover" 
+             (dragover)="onDragOver($event)" 
+             (dragleave)="onDragLeave($event)"
+             (drop)="onDrop($event)">
+          <input type="file" id="importFile" accept=".csv,.xlsx,.xls" 
+                 (change)="onFileSelected($event)" hidden>
+          
+          <div class="upload-icon">
+            <app-upload-icon></app-upload-icon>
+          </div>
+          
+          <p>Drag & drop your file here or</p>
+          <label for="importFile" class="btn btn-outline">
+            <app-file-icon></app-file-icon>
+            <span>Browse Files</span>
+          </label>
+          
+          <p class="file-types">Supported formats: CSV, Excel</p>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" [disabled]="!importFile">
+          Start Import
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div *ngIf="showReceiptModal && selectedSale" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content receipt-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Sales Receipt</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="receipt-content">
+          <div class="receipt-header">
+            <h2>COOPERATIVE SALES RECEIPT</h2>
+            <div class="receipt-details">
+              <div class="detail">Receipt No: {{selectedSale.transactionId}}</div>
+              <div class="detail">Date: {{formatDateTime(selectedSale.saleDate)}}</div>
+            </div>
+          </div>
+          
+          <div class="receipt-body">
+            <div class="customer-info">
+              <strong>Customer:</strong> {{selectedSale.customerName}}
+              <br *ngIf="selectedSale.customerPhone">
+              <span *ngIf="selectedSale.customerPhone">{{selectedSale.customerPhone}}</span>
+            </div>
+            
+            <div class="items-list">
+              <div class="items-header">
+                <div class="col-desc">Description</div>
+                <div class="col-qty">Qty</div>
+                <div class="col-price">Price</div>
+                <div class="col-total">Total</div>
+              </div>
+              <div *ngFor="let item of selectedSale.items" class="item-row">
+                <div class="col-desc">{{item.productName}}</div>
+                <div class="col-qty">{{item.quantity}} {{item.unit}}</div>
+                <div class="col-price">{{formatCurrency(item.unitPrice)}}</div>
+                <div class="col-total">{{formatCurrency(item.totalPrice)}}</div>
+              </div>
+            </div>
+            
+            <div class="receipt-total">
+              <div class="total-row">
+                <span>Subtotal:</span>
+                <span>{{formatCurrency(selectedSale.totalAmount)}}</span>
+              </div>
+              <div class="total-row">
+                <span>Amount Paid:</span>
+                <span>{{formatCurrency(selectedSale.amountPaid)}}</span>
+              </div>
+              <div *ngIf="selectedSale.outstandingBalance > 0" class="total-row outstanding">
+                <span>Balance Due:</span>
+                <span>{{formatCurrency(selectedSale.outstandingBalance)}}</span>
+              </div>
+            </div>
+            
+            <div class="payment-method">
+              <strong>Payment Method:</strong> {{getPaymentMethodDisplay(selectedSale.paymentMethod)}}
+            </div>
+          </div>
+          
+          <div class="receipt-footer">
+            <div class="footer-text">
+              Thank you for your business!
+            </div>
+            <div class="footer-note">
+              This is a computer-generated receipt. No signature required.
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="closeModal()">Close</button>
+        <button class="btn btn-primary" (click)="downloadReceipt()">
+          <app-download-icon></app-download-icon>
+          <span>Download Receipt</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
