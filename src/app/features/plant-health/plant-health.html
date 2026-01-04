@@ -1,1 +1,1082 @@
-<p>plant-health works!</p>
+<div class="plant-health">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <!-- Total Reports -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon primary">
+          <app-plant-icon></app-plant-icon>
+        </div>
+        <div class="stat-trend positive">+12%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Total Reports</h3>
+        <div class="value">{{stats.totalReports || 0}}</div>
+        <div class="stat-change positive">
+          <span>From last week</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Issues -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon danger">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <div class="stat-trend negative">+8%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Active Issues</h3>
+        <div class="value">{{stats.activeIssues || 0}}</div>
+        <div class="stat-change negative">
+          <span>Require attention</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Critical Issues -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon warning">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <div class="stat-trend positive">-5%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Critical Issues</h3>
+        <div class="value">{{stats.criticalIssues || 0}}</div>
+        <div class="stat-change positive">
+          <span>Decreasing trend</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Most Affected Crop -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon accent">
+          <app-plant-icon></app-plant-icon>
+        </div>
+        <div class="stat-trend neutral">0%</div>
+      </div>
+      <div class="stat-content">
+        <h3>Most Affected Crop</h3>
+        <div class="value">{{stats.mostAffectedCrop || 'None'}}</div>
+        <div class="stat-change neutral">
+          <span>Primary concern</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">Plant Health Reports</h2>
+      
+      <!-- Actions Toolbar -->
+      <div class="action-toolbar">
+        <!-- Search -->
+        <div class="search-box">
+          <app-search-icon></app-search-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (keyup.enter)="onSearch()"
+            placeholder="Search by farmer, crop, disease..."
+          >
+          <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()">
+            <app-x-circle-icon></app-x-circle-icon>
+          </button>
+        </div>
+
+        <!-- Filter Button -->
+        <button class="btn btn-outline" (click)="showFiltersModal = true">
+          <app-filter-icon></app-filter-icon>
+          <span>Filter</span>
+        </button>
+
+        <!-- Primary Actions -->
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>New Report</span>
+        </button>
+
+        <!-- Disease Patterns -->
+        <button class="btn btn-outline" (click)="openPatternsModal()">
+          <app-chart-icon></app-chart-icon>
+          <span>Disease Patterns</span>
+        </button>
+
+        <!-- Import/Export -->
+        <div class="dropdown">
+          <button class="btn btn-outline">
+            <app-export-icon></app-export-icon>
+            <span>Bulk Actions</span>
+          </button>
+          <div class="dropdown-menu">
+            <button class="dropdown-item" (click)="openImportModal()">
+              <app-import-icon></app-import-icon>
+              <span>Import Reports</span>
+            </button>
+            <button class="dropdown-item" (click)="openExportModal()">
+              <app-export-icon></app-export-icon>
+              <span>Export Reports</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Issues Table -->
+    <div class="table-container">
+      <table class="issues-table">
+        <thead>
+          <tr>
+            <th>Report</th>
+            <th>Farmer</th>
+            <th>Crop & Location</th>
+            <th>Disease Details</th>
+            <th>Status</th>
+            <th>Treatment</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let issue of filteredIssues" class="issue-row">
+            <!-- Report Info -->
+            <td class="report-info">
+              <div class="report-number">{{issue.reportNumber}}</div>
+              <div class="report-date">{{formatDate(issue.dateReported)}}</div>
+              <div class="report-area">
+                <span class="area-badge">{{issue.affectedArea}} ha</span>
+              </div>
+            </td>
+
+            <!-- Farmer Info -->
+            <td class="farmer-info">
+              <div class="farmer-name">{{issue.farmerName}}</div>
+              <div class="farmer-phone">
+                <app-phone-icon></app-phone-icon>
+                {{issue.farmerPhone}}
+              </div>
+              <div class="farm-name">{{issue.location.farmName}}</div>
+            </td>
+
+            <!-- Crop & Location -->
+            <td class="crop-info">
+              <div class="crop-type">
+                <span class="crop-badge" [class]="getCropClass(issue.cropType)">
+                  {{issue.cropType}}
+                </span>
+              </div>
+              <div class="location">
+                <app-map-pin-icon></app-map-pin-icon>
+                {{issue.location.city}}, {{issue.location.state}}
+              </div>
+            </td>
+
+            <!-- Disease Details -->
+            <td class="disease-info">
+              <div class="disease-type">
+                <span class="disease-badge" [class]="getDiseaseClass(issue.diseaseType)">
+                  {{issue.diseaseType}}
+                </span>
+              </div>
+              <div class="disease-severity">
+                <span class="severity-badge" [class]="getSeverityClass(issue.diseaseSeverity)">
+                  {{issue.diseaseSeverity | titlecase}}
+                </span>
+              </div>
+              <div class="disease-symptoms">
+                {{issue.symptoms.slice(0, 2).join(', ')}}
+                <span *ngIf="issue.symptoms.length > 2"> +{{issue.symptoms.length - 2}}</span>
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td class="status-info">
+              <div class="status">
+                <span class="status-badge" [class]="getStatusClass(issue.status)">
+                  {{issue.status | titlecase}}
+                </span>
+              </div>
+              <div *ngIf="issue.audioAlertSent" class="alert-sent">
+                <app-bell-icon></app-bell-icon>
+                <span>Alert Sent</span>
+              </div>
+            </td>
+
+            <!-- Treatment -->
+            <td class="treatment-info">
+              <div class="treatment-recommended">
+                {{issue.treatment.recommended ? (issue.treatment.recommended | slice:0:50) + '...' : 'Not specified'}}
+              </div>
+              <div *ngIf="issue.treatment.applied" class="treatment-applied">
+                <app-check-circle-icon></app-check-circle-icon>
+                <span>Applied</span>
+              </div>
+              <div *ngIf="issue.treatment.effectiveness" class="treatment-effectiveness">
+                Effectiveness: {{issue.treatment.effectiveness}}/5
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button class="action-btn view-btn" (click)="openViewModal(issue)" title="View Details">
+                  <app-eye-icon></app-eye-icon>
+                </button>
+                <button class="action-btn edit-btn" (click)="openEditModal(issue)" title="Edit">
+                  <app-edit-icon></app-edit-icon>
+                </button>
+                <button class="action-btn audio-btn" (click)="openAudioModal(issue)" title="Send Audio Alert">
+                  <app-bell-icon></app-bell-icon>
+                </button>
+                <button class="action-btn treatment-btn" (click)="openTreatmentModal(issue)" title="Add Treatment">
+                  <app-plus-icon></app-plus-icon>
+                </button>
+                <button class="action-btn delete-btn" (click)="openDeleteModal(issue)" title="Delete">
+                  <app-trash-icon></app-trash-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredIssues.length === 0" class="empty-state">
+        <app-plant-icon></app-plant-icon>
+        <p>No plant health reports found</p>
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <app-plus-icon></app-plus-icon>
+          <span>Create First Report</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        Previous
+      </button>
+      
+      <div class="page-numbers">
+        <button *ngFor="let page of getPageNumbers()" 
+                class="page-number" 
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)">
+          {{page}}
+        </button>
+      </div>
+      
+      <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        Next
+      </button>
+      
+      <div class="page-info">
+        Showing {{(currentPage - 1) * itemsPerPage + 1}}-{{getEndIndex()}} of {{totalItems}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  
+  <!-- Add Report Modal -->
+  <div *ngIf="showAddModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>New Plant Health Report</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="issueForm" (ngSubmit)="addIssue()">
+        <div class="modal-body">
+          <!-- Farmer Information -->
+          <div class="form-section">
+            <h4>Farmer Information</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Farmer Name *</label>
+                <input type="text" formControlName="farmerName" placeholder="Enter farmer name">
+              </div>
+              <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="tel" formControlName="farmerPhone" placeholder="+2348012345678">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Farm Name *</label>
+              <input type="text" formControlName="location.farmName" placeholder="Enter farm name">
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>City *</label>
+                <input type="text" formControlName="location.city" placeholder="City">
+              </div>
+              <div class="form-group">
+                <label>State *</label>
+                <select formControlName="location.state">
+                  <option value="">Select State</option>
+                  <option value="Lagos">Lagos</option>
+                  <option value="Abuja">Abuja</option>
+                  <option value="Kano">Kano</option>
+                  <option value="Rivers">Rivers</option>
+                  <option value="Enugu">Enugu</option>
+                  <option value="Oyo">Oyo</option>
+                  <option value="Kaduna">Kaduna</option>
+                  <option value="Delta">Delta</option>
+                  <option value="Ogun">Ogun</option>
+                  <option value="Ondo">Ondo</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Disease Information -->
+          <div class="form-section">
+            <h4>Disease Information</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Crop Type *</label>
+                <select formControlName="cropType">
+                  <option value="">Select Crop</option>
+                  <option *ngFor="let crop of cropTypes" [value]="crop">{{crop}}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Affected Area (hectares) *</label>
+                <input type="number" formControlName="affectedArea" placeholder="0.0" step="0.1" min="0">
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Disease Type *</label>
+                <select formControlName="diseaseType">
+                  <option value="">Select Disease</option>
+                  <option *ngFor="let disease of diseaseTypes" [value]="disease">{{disease}}</option>
+                  <option value="other">Other (specify in notes)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Severity *</label>
+                <select formControlName="diseaseSeverity">
+                  <option *ngFor="let severity of severityLevels" [value]="severity">
+                    {{severity | titlecase}}
+                  </option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Symptoms Observed (select multiple)</label>
+              <div class="checkbox-group multi-checkbox">
+                <label *ngFor="let symptom of symptomsOptions">
+                  <input type="checkbox" [value]="symptom" (change)="onSymptomChange($event, symptom)">
+                  {{symptom}}
+                </label>
+              </div>
+              <div class="form-group" style="margin-top: 1rem;">
+                <label>Other Symptoms</label>
+                <textarea formControlName="symptoms" placeholder="Add additional symptoms..." rows="2"></textarea>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date Reported</label>
+                <input type="date" formControlName="dateReported" [max]="today">
+              </div>
+              <div class="form-group">
+                <label>Status *</label>
+                <select formControlName="status">
+                  <option *ngFor="let status of statusOptions" [value]="status">
+                    {{status | titlecase}}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Treatment Information -->
+          <div class="form-section">
+            <h4>Treatment Information</h4>
+            <div class="form-group">
+              <label>Recommended Treatment *</label>
+              <select formControlName="treatment.recommended">
+                <option value="">Select Treatment</option>
+                <option *ngFor="let treatment of treatments" [value]="treatment">{{treatment}}</option>
+              </select>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Applied Treatment</label>
+                <input type="text" formControlName="treatment.applied" placeholder="Treatment applied">
+              </div>
+              <div class="form-group">
+                <label>Date Applied</label>
+                <input type="date" formControlName="treatment.dateApplied" [max]="today">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Treatment Effectiveness (1-5)</label>
+              <input type="range" formControlName="treatment.effectiveness" min="1" max="5" step="1">
+              <div class="range-labels">
+                <span>1 (Poor)</span>
+                <span>5 (Excellent)</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Additional Information -->
+          <div class="form-section">
+            <h4>Additional Information</h4>
+            <div class="form-group">
+              <label>Inspector Notes</label>
+              <textarea formControlName="inspectorNotes" placeholder="Enter inspection notes..." rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Follow-up Date</label>
+              <input type="date" formControlName="followUpDate" [min]="today">
+            </div>
+            
+            <div class="form-group">
+              <label>Preventive Measures</label>
+              <div class="checkbox-group multi-checkbox">
+                <label *ngFor="let measure of ['Crop rotation', 'Use resistant varieties', 'Proper irrigation', 'Field sanitation', 'Regular monitoring']">
+                  <input type="checkbox" [value]="measure" (change)="onPreventionChange($event, measure)">
+                  {{measure}}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Save Report
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Report Modal -->
+  <div *ngIf="showViewModal && selectedIssue" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content view-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Plant Health Report Details</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Report Header -->
+        <div class="report-header">
+          <div class="report-title">
+            <h2>{{selectedIssue.reportNumber}}</h2>
+            <div class="report-meta">
+              <span class="report-date">{{formatDate(selectedIssue.dateReported)}}</span>
+              <span class="severity-badge" [class]="getSeverityClass(selectedIssue.diseaseSeverity)">
+                {{selectedIssue.diseaseSeverity | uppercase}}
+              </span>
+              <span class="status-badge" [class]="getStatusClass(selectedIssue.status)">
+                {{selectedIssue.status | titlecase}}
+              </span>
+            </div>
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-outline" (click)="printReport(selectedIssue)">
+              <app-export-icon></app-export-icon>
+              <span>Print Report</span>
+            </button>
+            <button class="btn btn-outline" (click)="openAudioModal(selectedIssue)">
+              <app-bell-icon></app-bell-icon>
+              <span>Send Alert</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="profile-tabs">
+          <div class="tab" [class.active]="activeTab === 'details'" (click)="activeTab = 'details'">Details</div>
+          <div class="tab" [class.active]="activeTab === 'treatment'" (click)="activeTab = 'treatment'">Treatment</div>
+          <div class="tab" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">History</div>
+          <div class="tab" [class.active]="activeTab === 'prevention'" (click)="activeTab = 'prevention'">Prevention</div>
+        </div>
+
+        <!-- Details Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'details'">
+          <div class="info-grid">
+            <div class="info-section">
+              <h4>Farmer Information</h4>
+              <div class="info-item">
+                <strong>Farmer:</strong> {{selectedIssue.farmerName}}
+              </div>
+              <div class="info-item">
+                <strong>Phone:</strong> {{selectedIssue.farmerPhone}}
+              </div>
+              <div class="info-item">
+                <strong>Farm:</strong> {{selectedIssue.location.farmName}}
+              </div>
+              <div class="info-item">
+                <strong>Location:</strong> {{selectedIssue.location.city}}, {{selectedIssue.location.state}}
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Disease Information</h4>
+              <div class="info-item">
+                <strong>Crop Type:</strong> 
+                <span class="crop-badge" [class]="getCropClass(selectedIssue.cropType)">
+                  {{selectedIssue.cropType}}
+                </span>
+              </div>
+              <div class="info-item">
+                <strong>Affected Area:</strong> {{selectedIssue.affectedArea}} hectares
+              </div>
+              <div class="info-item">
+                <strong>Disease:</strong> 
+                <span class="disease-badge" [class]="getDiseaseClass(selectedIssue.diseaseType)">
+                  {{selectedIssue.diseaseType}}
+                </span>
+              </div>
+              <div class="info-item">
+                <strong>Date Reported:</strong> {{formatDate(selectedIssue.dateReported)}}
+              </div>
+              <div *ngIf="selectedIssue.dateIdentified" class="info-item">
+                <strong>Date Identified:</strong> {{formatDate(selectedIssue.dateIdentified)}}
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Symptoms</h4>
+              <div class="symptoms-list">
+                <span *ngFor="let symptom of selectedIssue.symptoms" class="symptom-tag">
+                  {{symptom}}
+                </span>
+              </div>
+              
+              <h4 style="margin-top: 1.5rem;">Images</h4>
+              <div class="images-grid">
+                <div *ngFor="let image of selectedIssue.images" class="image-preview">
+                  <img [src]="image" alt="Disease image">
+                </div>
+                <div *ngIf="selectedIssue.images.length === 0" class="no-images">
+                  No images uploaded
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Treatment Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'treatment'">
+          <div class="info-grid">
+            <div class="info-section">
+              <h4>Treatment Summary</h4>
+              <div class="info-item">
+                <strong>Recommended:</strong> {{selectedIssue.treatment.recommended || 'Not specified'}}
+              </div>
+              <div *ngIf="selectedIssue.treatment.applied" class="info-item">
+                <strong>Applied:</strong> {{selectedIssue.treatment.applied}}
+              </div>
+              <div *ngIf="selectedIssue.treatment.dateApplied" class="info-item">
+                <strong>Date Applied:</strong> {{formatDate(selectedIssue.treatment.dateApplied)}}
+              </div>
+              <div *ngIf="selectedIssue.treatment.effectiveness" class="info-item">
+                <strong>Effectiveness:</strong> 
+                <div class="effectiveness-stars">
+                  <span *ngFor="let star of getEffectivenessStars(selectedIssue.treatment.effectiveness)" 
+                        [class]="star"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Treatment History</h4>
+              <div class="treatment-history">
+                <div *ngFor="let treatment of treatmentHistory" class="treatment-item">
+                  <div class="treatment-header">
+                    <span class="treatment-type">{{treatment.treatmentType}}</span>
+                    <span class="treatment-date">{{formatDate(treatment.dateApplied)}}</span>
+                  </div>
+                  <div class="treatment-details">
+                    <span>By: {{treatment.appliedBy}}</span>
+                    <span>Effectiveness: {{treatment.effectiveness}}/5</span>
+                  </div>
+                  <div *ngIf="treatment.notes" class="treatment-notes">
+                    {{treatment.notes}}
+                  </div>
+                </div>
+                <div *ngIf="treatmentHistory.length === 0" class="no-history">
+                  No treatment history recorded
+                </div>
+              </div>
+              <button class="btn btn-outline" (click)="openTreatmentModal(selectedIssue)" style="margin-top: 1rem;">
+                <app-plus-icon></app-plus-icon>
+                <span>Add Treatment Record</span>
+              </button>
+            </div>
+
+            <div class="info-section">
+              <h4>Inspector Notes</h4>
+              <div class="inspector-notes">
+                {{selectedIssue.inspectorNotes || 'No notes recorded'}}
+              </div>
+              
+              <h4 style="margin-top: 1.5rem;">Follow-up</h4>
+              <div *ngIf="selectedIssue.followUpDate" class="info-item">
+                <strong>Next Follow-up:</strong> {{formatDate(selectedIssue.followUpDate)}}
+              </div>
+              <div *ngIf="!selectedIssue.followUpDate" class="info-item">
+                No follow-up scheduled
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'history'">
+          <div class="info-grid">
+            <div class="info-section full-width">
+              <h4>Report Timeline</h4>
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-date">{{formatDate(selectedIssue.createdAt)}}</div>
+                  <div class="timeline-content">
+                    <strong>Report Created</strong>
+                    <p>Initial report submitted</p>
+                  </div>
+                </div>
+                <div *ngIf="selectedIssue.dateIdentified" class="timeline-item">
+                  <div class="timeline-date">{{formatDate(selectedIssue.dateIdentified)}}</div>
+                  <div class="timeline-content">
+                    <strong>Disease Identified</strong>
+                    <p>{{selectedIssue.diseaseType}} confirmed</p>
+                  </div>
+                </div>
+                <div *ngIf="selectedIssue.treatment.dateApplied" class="timeline-item">
+                  <div class="timeline-date">{{formatDate(selectedIssue.treatment.dateApplied)}}</div>
+                  <div class="timeline-content">
+                    <strong>Treatment Applied</strong>
+                    <p>{{selectedIssue.treatment.applied}}</p>
+                  </div>
+                </div>
+                <div *ngIf="selectedIssue.audioAlertSent" class="timeline-item">
+                  <div class="timeline-date">{{formatDate(selectedIssue.updatedAt)}}</div>
+                  <div class="timeline-content">
+                    <strong>Audio Alert Sent</strong>
+                    <p>Farmer notified via audio message</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prevention Tab -->
+        <div class="tab-content" *ngIf="activeTab === 'prevention'">
+          <div class="info-grid">
+            <div class="info-section">
+              <h4>Preventive Measures</h4>
+              <div *ngIf="selectedIssue.preventiveMeasures && selectedIssue.preventiveMeasures.length > 0" class="prevention-list">
+                <div *ngFor="let measure of selectedIssue.preventiveMeasures" class="prevention-item">
+                  <app-check-circle-icon></app-check-circle-icon>
+                  <span>{{measure}}</span>
+                </div>
+              </div>
+              <div *ngIf="!selectedIssue.preventiveMeasures || selectedIssue.preventiveMeasures.length === 0" class="no-prevention">
+                No preventive measures specified
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>General Prevention Tips</h4>
+              <div class="general-tips">
+                <div class="tip-item">
+                  <strong>Field Sanitation:</strong> Remove crop debris and weeds regularly
+                </div>
+                <div class="tip-item">
+                  <strong>Crop Rotation:</strong> Rotate with non-host crops to break disease cycles
+                </div>
+                <div class="tip-item">
+                  <strong>Resistant Varieties:</strong> Use disease-resistant crop varieties
+                </div>
+                <div class="tip-item">
+                  <strong>Proper Spacing:</strong> Ensure adequate plant spacing for air circulation
+                </div>
+                <div class="tip-item">
+                  <strong>Regular Monitoring:</strong> Inspect crops weekly for early signs
+                </div>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4>Disease Pattern Information</h4>
+              <div *ngFor="let pattern of diseasePatterns" class="pattern-card">
+                <div class="pattern-header">
+                  <span class="pattern-name">{{pattern.diseaseName}}</span>
+                  <span class="risk-badge" [class]="getRiskClass(pattern.outbreakRisk)">
+                    {{pattern.outbreakRisk | uppercase}}
+                  </span>
+                </div>
+                <div class="pattern-details">
+                  <span><strong>Crop:</strong> {{pattern.cropType}}</span>
+                  <span><strong>Season:</strong> {{pattern.season}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="openEditModal(selectedIssue)">
+          <app-edit-icon></app-edit-icon>
+          <span>Edit Report</span>
+        </button>
+        <button class="btn btn-primary" (click)="printReport(selectedIssue)">
+          <app-download-icon></app-download-icon>
+          <span>Download Report</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Treatment Modal -->
+  <div *ngIf="showTreatmentModal && selectedIssue" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add Treatment Record</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="treatmentForm" (ngSubmit)="addTreatment()">
+        <div class="modal-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Treatment Type *</label>
+              <select formControlName="treatmentType">
+                <option value="">Select Treatment</option>
+                <option *ngFor="let treatment of treatments" [value]="treatment">{{treatment}}</option>
+              </select>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date Applied *</label>
+                <input type="date" formControlName="dateApplied" [max]="today">
+              </div>
+              <div class="form-group">
+                <label>Applied By *</label>
+                <input type="text" formControlName="appliedBy" placeholder="Name of inspector">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Effectiveness (1-5) *</label>
+              <div class="effectiveness-input">
+                <input type="range" formControlName="effectiveness" min="1" max="5" step="1">
+                <div class="effectiveness-labels">
+                  <span>1 (Poor)</span>
+                  <span>2</span>
+                  <span>3 (Average)</span>
+                  <span>4</span>
+                  <span>5 (Excellent)</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea formControlName="notes" placeholder="Enter treatment notes..." rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Save Treatment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Audio Alert Modal -->
+  <div *ngIf="showAudioModal && selectedIssue" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Send Audio Alert</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="audioForm" (ngSubmit)="sendAudioAlert()">
+        <div class="modal-body">
+          <div class="form-section">
+            <div class="info-box">
+              <strong>Recipient:</strong> {{selectedIssue.farmerName}} ({{selectedIssue.farmerPhone}})
+              <br>
+              <strong>Disease:</strong> {{selectedIssue.diseaseType}} in {{selectedIssue.cropType}}
+            </div>
+            
+            <div class="form-group">
+              <label>Audio Message *</label>
+              <textarea formControlName="message" rows="4" placeholder="Enter audio message content..."></textarea>
+              <div class="message-preview">
+                <strong>Preview:</strong> {{audioForm.get('message')?.value || 'No message'}}
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Language</label>
+                <select formControlName="language">
+                  <option value="english">English</option>
+                  <option value="hausa">Hausa</option>
+                  <option value="yoruba">Yoruba</option>
+                  <option value="igbo">Igbo</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Schedule For</label>
+                <select formControlName="scheduleFor">
+                  <option value="immediate">Send Immediately</option>
+                  <option value="morning">Tomorrow Morning</option>
+                  <option value="evening">Tomorrow Evening</option>
+                  <option value="custom">Custom Schedule</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Additional Information</label>
+              <div class="checkbox-group">
+                <label>
+                  <input type="checkbox" formControlName="includePreventionTips">
+                  Include prevention tips
+                </label>
+                <label>
+                  <input type="checkbox" formControlName="includeTreatmentInfo">
+                  Include treatment information
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSendingAudio">
+            {{isSendingAudio ? 'Sending...' : 'Send Audio Alert'}}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Disease Patterns Modal -->
+  <div *ngIf="showPatternsModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content patterns-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Disease Patterns & Prevention</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="patterns-grid">
+          <div *ngFor="let pattern of diseasePatterns" class="pattern-card">
+            <div class="pattern-header">
+              <h4>{{pattern.diseaseName}}</h4>
+              <span class="risk-badge" [class]="getRiskClass(pattern.outbreakRisk)">
+                {{pattern.outbreakRisk | uppercase}}
+              </span>
+            </div>
+            <div class="pattern-info">
+              <div class="pattern-item">
+                <strong>Crop:</strong> {{pattern.cropType}}
+              </div>
+              <div class="pattern-item">
+                <strong>Season:</strong> {{pattern.season}}
+              </div>
+              <div class="pattern-item">
+                <strong>Last Outbreak:</strong> {{pattern.lastOutbreak ? formatDate(pattern.lastOutbreak) : 'Unknown'}}
+              </div>
+              <div class="pattern-item">
+                <strong>Affected Regions:</strong>
+                <div class="region-tags">
+                  <span *ngFor="let region of pattern.affectedRegions" class="region-tag">
+                    {{region}}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="pattern-symptoms">
+              <strong>Common Symptoms:</strong>
+              <div class="symptom-tags">
+                <span *ngFor="let symptom of pattern.commonSymptoms" class="symptom-tag">
+                  {{symptom}}
+                </span>
+              </div>
+            </div>
+            <div class="pattern-treatment">
+              <strong>Recommended Treatment:</strong>
+              <p>{{pattern.recommendedTreatment}}</p>
+            </div>
+            <div class="pattern-prevention">
+              <strong>Prevention Tips:</strong>
+              <ul>
+                <li *ngFor="let tip of pattern.preventionTips">{{tip}}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div *ngIf="diseasePatterns.length === 0" class="empty-state">
+          <app-plant-icon></app-plant-icon>
+          <p>No disease patterns recorded</p>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="downloadTemplate()">
+          <app-download-icon></app-download-icon>
+          <span>Download Prevention Guide</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteModal && selectedIssue" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Deletion</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="warning-icon">
+          <app-alert-icon></app-alert-icon>
+        </div>
+        <h4>Are you sure you want to delete this report?</h4>
+        <p>This will permanently delete <strong>{{selectedIssue.reportNumber}}</strong>.</p>
+        <p class="warning-text">This action cannot be undone. All associated data will be lost.</p>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="deleteIssue()">
+          Delete Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Modal -->
+  <div *ngIf="showFiltersModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content filters-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Filter Reports</h3>
+        <button class="modal-close" (click)="closeModal()">
+          <app-x-circle-icon></app-x-circle-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="filter-group">
+          <h4>Status</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" value="all">
+              <span>All Status</span>
+            </label>
+            <label class="filter-option" *ngFor="let status of statusOptions">
+              <input type="radio" name="status" [(ngModel)]="statusFilter" [value]="status">
+              <span class="status-badge" [class]="getStatusClass(status)">{{status | titlecase}}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Severity</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="severity" [(ngModel)]="severityFilter" value="all">
+              <span>All Severities</span>
+            </label>
+            <label class="filter-option" *ngFor="let severity of severityLevels">
+              <input type="radio" name="severity" [(ngModel)]="severityFilter" [value]="severity">
+              <span class="severity-badge" [class]="getSeverityClass(severity)">{{severity | titlecase}}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Crop Type</h4>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input type="radio" name="crop" [(ngModel)]="cropTypeFilter" value="all">
+              <span>All Crops</span>
+            </label>
+            <label class="filter-option" *ngFor="let crop of cropTypes">
+              <input type="radio" name="crop" [(ngModel)]="cropTypeFilter" [value]="crop">
+              <span class="crop-badge" [class]="getCropClass(crop)">{{crop}}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+  <h4>Date Range</h4>
+  <div class="date-range">
+    <input 
+      type="date" 
+      [value]="startDate" 
+      (change)="onStartDateChange($event)"
+      placeholder="Start date"
+    >
+    <span>to</span>
+    <input 
+      type="date" 
+      [value]="endDate" 
+      (change)="onEndDateChange($event)"
+      placeholder="End date"
+    >
+  </div>
+</div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">
+          Clear All
+        </button>
+        <button type="button" class="btn btn-primary" (click)="applyFilters()">
+          Apply Filters
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
