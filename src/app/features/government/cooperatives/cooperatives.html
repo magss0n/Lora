@@ -1,0 +1,83 @@
+<div class="cooperatives-page">
+  <div class="page-header">
+    <h2>Cooperatives</h2>
+    <button class="add-btn" (click)="openCreateModal()">+ New Cooperative</button>
+  </div>
+
+  <table class="coop-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Location</th>
+        <th>Members</th>
+        <th>Contact</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let coop of cooperatives">
+        <td>{{ coop.id }}</td>
+        <td>{{ coop.name }}</td>
+        <td>{{ coop.location }}</td>
+        <td>{{ coop.farmers.length }}</td>
+        <td>{{ coop.contact }}</td>
+        <td class="actions">
+          <button class="action view" (click)="openFarmers(coop)">Farmers</button>
+          <button
+            class="action deactivate"
+            (click)="deactivateCoop(coop)"
+            [disabled]="!coop.active">
+            {{ coop.active ? 'Deactivate' : 'Inactive' }}
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Farmers Modal -->
+  <div class="modal-backdrop" *ngIf="selectedCoop" (click)="closeFarmersModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ selectedCoop.name }}</h3>
+        <button class="close-btn" (click)="closeFarmersModal()">×</button>
+      </div>
+
+      <p class="modal-subtitle">
+        Farmers & Crops – {{ selectedCoop.location }}
+      </p>
+
+      <ul class="farmers-list">
+        <li *ngFor="let farmer of selectedCoop.farmers">
+          👨‍🌾 {{ farmer.name }}
+          <span class="crop">🌱 {{ farmer.crop }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Create Cooperative Modal -->
+  <div class="modal-backdrop" *ngIf="showCreateModal" (click)="closeCreateModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Create Cooperative</h3>
+        <button class="close-btn" (click)="closeCreateModal()">×</button>
+      </div>
+
+      <form class="form">
+        <label>Name</label>
+        <input [(ngModel)]="newCoop.name" />
+
+        <label>Location</label>
+        <input [(ngModel)]="newCoop.location" />
+
+        <label>Contact</label>
+        <input [(ngModel)]="newCoop.contact" />
+
+        <button type="button" class="submit-btn" (click)="createCooperative()">
+          Create
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

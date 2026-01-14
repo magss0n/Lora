@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "deploy": "ng build --configuration production --base-href=/lora/ && npx angular-cli-ghpages --dir=dist/lora/browser --no-silent"
+
   },
   "prettier": {
     "printWidth": 100,
@@ -29,6 +31,7 @@
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
     "chart.js": "^4.5.1",
+    "ghpages": "^0.0.10",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

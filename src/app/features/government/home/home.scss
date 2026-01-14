@@ -1,0 +1,152 @@
+.dashboard {
+  padding: 2rem;
+  background: #f6f8fb;
+  min-height: 100vh;
+
+}
+
+/* Metrics */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 14px;
+  padding: 1.2rem;
+  box-shadow: 0 10px 20px rgba(0,0,0,.08);
+
+  h4 {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 0.4rem;
+  }
+
+  span {
+    font-size: 1.6rem;
+    font-weight: bold;
+  }
+}
+
+/* ---------- Animations ---------- */
+.fade-in {
+  animation: fadeIn 0.6s ease-in;
+}
+
+.slide-up {
+  animation: slideUp 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0 }
+  to { opacity: 1 }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Top Bar ---------- */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+
+  input {
+    width: 60%;
+    padding: 0.7rem 1rem;
+    border-radius: 20px;
+    border: none;
+    background: #eef2f7;
+  }
+
+  .top-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+
+    img {
+      border-radius: 50%;
+    }
+  }
+}
+
+/* ---------- Cards ---------- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.2rem;
+  box-shadow: 0 12px 25px rgba(0,0,0,.08);
+
+  .content {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.6rem;
+  }
+}
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 12px 25px rgba(0,0,0,.08);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: .4rem 1rem;
+    border-radius: 20px;
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar input {
+    width: 100%;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

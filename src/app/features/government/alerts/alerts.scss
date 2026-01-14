@@ -1,0 +1,169 @@
+.alerts-page {
+  padding: 2rem;
+  background: #f6f8fb;
+  min-height: 100vh;
+  font-family: system-ui, sans-serif;
+}
+
+/* Header */
+.page-header {
+  margin-bottom: 1.5rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.8rem;
+  }
+
+  p {
+    color: #6b7280;
+    margin-top: 0.3rem;
+  }
+}
+
+/* Summary Cards */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 1.8rem;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 14px;
+  padding: 1.2rem;
+  box-shadow: 0 10px 20px rgba(0,0,0,.08);
+
+  h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #6b7280;
+  }
+
+  span {
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+
+  &.critical { border-left: 6px solid #dc2626; }
+  &.high { border-left: 6px solid #ea580c; }
+  &.medium { border-left: 6px solid #eab308; }
+  &.resolved { border-left: 6px solid #16a34a; }
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  input, select {
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: white;
+  }
+
+  input {
+    flex: 1;
+  }
+}
+
+/* Table */
+.alerts-table {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 10px 20px rgba(0,0,0,.08);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #f1f5f9;
+}
+
+th, td {
+  padding: 0.9rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+tbody tr.unread {
+  background: #fef2f2;
+}
+
+.badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.critical {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  &.high {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+
+  &.medium {
+    background: #fef9c3;
+    color: #a16207;
+  }
+}
+
+/* Status */
+.status {
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.new { color: #dc2626; }
+  &.progress { color: #ea580c; }
+  &.resolved { color: #16a34a; }
+}
+
+/* Action Button */
+.action-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  table {
+    font-size: 0.8rem;
+  }
+}

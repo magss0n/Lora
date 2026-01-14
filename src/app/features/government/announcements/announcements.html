@@ -1,0 +1,66 @@
+<div class="announcements-page">
+  <div class="page-header">
+    <h2>Government Announcements</h2>
+    <button class="upload-btn" (click)="openUploadModal()">+ New Announcement</button>
+  </div>
+
+  <table class="announcements-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>PDF</th>
+        <th>Audio Translations</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let ann of announcements">
+        <td>{{ ann.id }}</td>
+        <td>{{ ann.title }}</td>
+        <td>
+          <a [href]="ann.pdfUrl" target="_blank">View PDF</a>
+        </td>
+        <td>
+          <ul>
+            <li *ngFor="let audio of ann.audioFiles">
+              {{ audio.language }} 
+              <audio controls [src]="audio.url"></audio>
+            </li>
+          </ul>
+        </td>
+        <td class="actions">
+          <button class="action edit" (click)="editAnnouncement(ann)">Edit</button>
+          <button class="action delete" (click)="deleteAnnouncement(ann)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Upload Announcement Modal -->
+  <div class="modal-backdrop" *ngIf="showUploadModal" (click)="closeUploadModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Upload Announcement</h3>
+        <button class="close-btn" (click)="closeUploadModal()">×</button>
+      </div>
+
+      <form class="form">
+        <label>Title</label>
+        <input [(ngModel)]="newAnnouncement.title" />
+
+        <label>PDF File</label>
+        <input type="file" (change)="handlePdfUpload($event)" />
+
+        <label>Audio Translation</label>
+        <input type="file" accept="audio/*" multiple (change)="handleAudioUpload($event)" />
+        <p>Or record using microphone:</p>
+        <button type="button" (click)="startRecording()">🎤 Record Audio</button>
+
+        <button type="button" class="submit-btn" (click)="uploadAnnouncement()">
+          Upload
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

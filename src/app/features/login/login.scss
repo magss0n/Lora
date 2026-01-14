@@ -1,0 +1,100 @@
+$primary-green: rgb(47, 93, 80);
+$accent-blue: #4a78c2;
+$light-bg: #f5f7fa;
+
+.login-container {
+  min-height: 100vh;
+  background: linear-gradient(
+      rgba(0, 0, 0, 0.4),
+      rgba(47, 93, 80, 0.9)
+    ),
+    url('../../../../public/assets/images/pexels-mo-eid-1268975-27684920.jpg') center/cover no-repeat;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.logo{
+  width: 180px;
+}
+
+.login-card {
+  background: rgba(246, 253, 247, 1);
+  padding: 2.5rem ;
+  border-radius: 22px;
+  width: 100%;
+  align-items: center;
+  max-width: 380px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  text-align: center;
+
+  h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: $primary-green;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 2rem;
+  }
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 1.3rem;
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+  }
+
+  input {
+    width: 90%;
+    padding: 0.7rem 0.9rem;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 0.9rem;
+
+    &:focus {
+      outline: none;
+      border-color: $accent-blue;
+    }
+  }
+}
+
+.login-btn {
+  width: 100%;
+  margin-top: 0.8rem;
+  background: $accent-blue;
+  color: #fff;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.contact-text {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+
+  a {
+    color: $accent-blue;
+    font-weight: 600;
+    text-decoration: none;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 2rem 1.5rem;
+  }
+}

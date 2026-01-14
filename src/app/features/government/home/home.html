@@ -1,0 +1,78 @@
+<div class="dashboard fade-in">
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <input placeholder="Search" />
+    <div class="top-actions">
+      <span>🔔</span>
+      <span>⚙️</span>
+      <img src="https://i.pravatar.cc/40" />
+    </div>
+  </div>
+
+  <h2>Hello, Welcome to Lora</h2>
+
+    <!-- Key Metrics -->
+  <div class="metrics">
+    <div class="metric-card">
+      <h4>Total Alerts (YTD)</h4>
+      <span>320</span>
+    </div>
+    <div class="metric-card">
+      <h4>Critical Alerts</h4>
+      <span>78</span>
+    </div>
+    <div class="metric-card">
+      <h4>Registered Cooperatives</h4>
+      <span>540</span>
+    </div>
+    <div class="metric-card">
+      <h4>Active Farmers</h4>
+      <span>12,400</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card slide-up" *ngFor="let stat of stats">
+      <div class="title">{{ stat.title }}</div>
+      <div class="content">
+        <span>{{ stat.icon }}</span>
+        <strong>{{ stat.value }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-header">
+        <h4>Production Report</h4>
+        <button>Export PDF</button>
+      </div>
+      <canvas #productionChart></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h4>Alert Report</h4>
+      </div>
+      <canvas #alertsChart></canvas>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-header">
+        <h4>Cooperatives per Region</h4>
+      </div>
+      <canvas #regionsChart></canvas>
+    </div>
+
+    <div class="card">
+      <h4>Recently Logged In</h4>
+      <p class="muted">Live activity feed</p>
+    </div>
+  </div>
+
+</div>

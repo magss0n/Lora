@@ -1,0 +1,104 @@
+<div class="alerts-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h2>Emergency Alerts</h2>
+      <p>Incoming alerts from farmers and cooperatives across the country</p>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <div class="summary-card critical">
+      <h3>Critical</h3>
+      <span>5</span>
+    </div>
+    <div class="summary-card high">
+      <h3>High</h3>
+      <span>12</span>
+    </div>
+    <div class="summary-card medium">
+      <h3>Medium</h3>
+      <span>20</span>
+    </div>
+    <div class="summary-card resolved">
+      <h3>Resolved</h3>
+      <span>8</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <input type="text" placeholder="Search by cooperative or location" />
+    <select>
+      <option>All Alert Types</option>
+      <option>Flood</option>
+      <option>Fire</option>
+      <option>Pest</option>
+      <option>Disease</option>
+    </select>
+    <select>
+      <option>All Regions</option>
+      <option>Centre</option>
+      <option>South West</option>
+      <option>West</option>
+    </select>
+  </div>
+
+  <!-- Alerts Table -->
+  <div class="alerts-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Severity</th>
+          <th>Location</th>
+          <th>Cooperative</th>
+          <th>Time</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr class="unread">
+          <td>🔥 Fire</td>
+          <td><span class="badge critical">Critical</span></td>
+          <td>Centre · Yaoundé</td>
+          <td>Green Valley Coop</td>
+          <td>10 mins ago</td>
+          <td><span class="status new">New</span></td>
+          <td>
+            <button class="action-btn">View</button>
+          </td>
+        </tr>
+
+        <tr>
+          <td>🌊 Flood</td>
+          <td><span class="badge high">High</span></td>
+          <td>SW · Buea</td>
+          <td>Sunrise Farmers</td>
+          <td>1 hour ago</td>
+          <td><span class="status progress">In Progress</span></td>
+          <td>
+            <button class="action-btn">View</button>
+          </td>
+        </tr>
+
+        <tr>
+          <td>🐛 Pest</td>
+          <td><span class="badge medium">Medium</span></td>
+          <td>West · Bafoussam</td>
+          <td>Unity Coop</td>
+          <td>Yesterday</td>
+          <td><span class="status resolved">Resolved</span></td>
+          <td>
+            <button class="action-btn">View</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

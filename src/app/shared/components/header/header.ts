@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -23,6 +23,14 @@ import { SearchIcon, BellIcon, MailIcon, MenuIcon } from '../svg-icons/svg-icons
 })
 export class HeaderComponent {
   @Output() toggleSidebar = new EventEmitter<void>();
+  @Input({required: true}) type!: 'government' | 'cooperative';
+  title: string = '';
+  subtitle: string = '';
+
+  ngOnInit(){
+    this.title= this.type === 'government' ? 'Government Dashboard' : 'Cooperative Dashboard';
+    this.subtitle= this.type === 'government' ? 'Manage national agricultural data' : "Welcome back! Here's what's happening with your cooperative today.";   
+  }
   
   searchQuery: string = '';
   

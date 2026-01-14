@@ -1,0 +1,89 @@
+<!-- landing.component.html -->
+<div class="landing-container">
+  <!-- Navigation -->
+  <nav class="navbar">
+    <img src="../../../../assets/images/Logo2.png" alt="logo" srcset="" class="logo">
+    <!-- Hamburger button -->
+  <button class="hamburger" [class.open]="menuOpen" (click)="toggleMenu()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+    <ul class="nav-menu" [class.open]="menuOpen">
+      <li><a href="#home" class="nav-link">Home</a></li>
+      <li><a href="#how-it-works" class="nav-link">How it Works</a></li>
+      <li><a href="#features" class="nav-link">Features</a></li>
+      <li><a href="#contact" class="nav-link">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <div class="hero-content">
+      <h1>Empowering Your Cooperative, Digitizing Your Farmers</h1>
+      <p>Build stronger relationships. Share your farm. Grow your track record.</p>
+      <p>Keep every member informed. Track production efficiency, manage growth.</p>
+      <button class="cta-btn" routerLink="/login" >Get Started</button>
+    </div>
+
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2 class="section-title">Our Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <img src="../../../../assets/images/pexels-kelly-2382665.jpg" alt="Farmer in field" class="feature-img">
+          <h3>Farmer Services</h3>
+        </div>
+        <div class="feature-card">
+          <img src="../../../../assets/images/pexels-pixabay-50707.jpg" alt="Produce tracking" class="feature-img">
+          <h3>Track Produce</h3>
+        </div>
+        <div class="feature-card">
+          <img src="../../../../assets/images/ann.jpg" alt="Public announcements" class="feature-img">
+          <h3>Public Announcements</h3>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How it Works</h2>
+      <div class="steps-grid">
+        <div class="step">
+          <img src="../../../../assets/images/1.png" alt="Register cooperative" class="step-img">
+          <h3>1. Register Your Cooperative</h3>
+        </div>
+        <div class="step">
+          <img src="../../../../assets/images/2.png" alt="Add farmers" class="step-img">
+          <h3>2. Add Farmers & Records</h3>
+        </div>
+        <div class="step">
+          <img src="../../../../assets/images/3.png" alt="Grow together" class="step-img">
+          <h3>3. Grow Together!</h3>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-large">
+          <span class="stat-number">+100k</span>
+          <span>Users</span>
+        </div>
+        <div class="stat-large">
+          <span class="stat-number">+1k</span>
+          <span>Cooperatives</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 Lora. Every member informed. Every cooperative tracked.</p>
+    </div>
+  </footer>
+</div>
