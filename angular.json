@@ -58,10 +58,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "lora:build:production"
+              "buildTarget": "Lora:build:production"
             },
             "development": {
-              "buildTarget": "lora:build:development"
+              "buildTarget": "Lora:build:development"
             }
           },
           "defaultConfiguration": "development"
