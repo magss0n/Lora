@@ -11,8 +11,7 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthService {
 
-  // private readonly API_URL = 'https://meetin-backend.onrender.com/api/auth/login';
-  private readonly API_URL = environment.apiUrl + 'lora-user-service/api/auth/login';
+  private readonly API_URL = environment.apiUrl + '/api/auth/login';
 
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private http = inject(HttpClient);

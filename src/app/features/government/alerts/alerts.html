@@ -6,44 +6,65 @@
       <h2>Emergency Alerts</h2>
       <p>Incoming alerts from farmers and cooperatives across the country</p>
     </div>
+
+    <button class="add-btn" (click)="openCreateModal()">+ New Alert</button>
   </div>
+
+  @if (loading()) {
+    <p>Loading alerts...</p>
+  }
+  @if (errorMessage()) {
+    <p style="color:#c0392b; font-weight:600;">{{ errorMessage() }}</p>
+  }
 
   <!-- Summary Cards -->
   <div class="summary-cards">
     <div class="summary-card critical">
       <h3>Critical</h3>
-      <span>5</span>
+      <span>{{ criticalCount() }}</span>
     </div>
     <div class="summary-card high">
       <h3>High</h3>
-      <span>12</span>
+      <span>{{ highCount() }}</span>
     </div>
     <div class="summary-card medium">
       <h3>Medium</h3>
-      <span>20</span>
+      <span>{{ mediumCount() }}</span>
     </div>
     <div class="summary-card resolved">
       <h3>Resolved</h3>
-      <span>8</span>
+      <span>{{ resolvedCount() }}</span>
     </div>
   </div>
 
   <!-- Filters -->
   <div class="filters">
-    <input type="text" placeholder="Search by cooperative or location" />
-    <select>
-      <option>All Alert Types</option>
-      <option>Flood</option>
-      <option>Fire</option>
-      <option>Pest</option>
-      <option>Disease</option>
-    </select>
-    <select>
-      <option>All Regions</option>
-      <option>Centre</option>
-      <option>South West</option>
-      <option>West</option>
-    </select>
+    <form class="filters" [formGroup]="filterForm">
+      <input type="text" placeholder="Search by cooperative or location" formControlName="query" />
+
+      <select formControlName="type">
+        <option value="">All Alert Types</option>
+        @for (t of typeOptions; track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+
+      <input type="text" placeholder="Region" formControlName="region" />
+
+      <select formControlName="severity">
+        <option value="">All Severities</option>
+        @for (s of severityOptions; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+
+      <select formControlName="status">
+        <option value="">All Statuses</option>
+        @for (st of statusOptions; track st) {
+          <option [value]="st">{{ st }}</option>
+        }
+      </select>
+    </form>
   </div>
 
   <!-- Alerts Table -->
@@ -62,43 +83,106 @@
       </thead>
 
       <tbody>
-        <tr class="unread">
-          <td>🔥 Fire</td>
-          <td><span class="badge critical">Critical</span></td>
-          <td>Centre · Yaoundé</td>
-          <td>Green Valley Coop</td>
-          <td>10 mins ago</td>
-          <td><span class="status new">New</span></td>
-          <td>
-            <button class="action-btn">View</button>
-          </td>
-        </tr>
+        @for (a of filteredAlerts(); track a.id) {
+          <tr [class.unread]="a.status === 'NEW'">
+            <td>{{ typeLabel(a.type) }}</td>
+            <td><span class="badge" [class]="severityClass(a.severity)">{{ a.severity }}</span></td>
+            <td>{{ a.region }} · {{ a.location }}</td>
+            <td>{{ a.cooperativeName }}</td>
+            <td>{{ formatTime(a.createdAt) }}</td>
+            <td><span class="status" [class]="statusClass(a.status)">{{ a.status }}</span></td>
+            <td class="actions">
+              <button class="action-btn" (click)="openView(a)">View</button>
+              @if (a.status !== 'RESOLVED') {
+                <button class="action-btn secondary" (click)="updateStatus(a, 'RESOLVED')">Resolve</button>
+              }
+            </td>
+          </tr>
+        }
 
-        <tr>
-          <td>🌊 Flood</td>
-          <td><span class="badge high">High</span></td>
-          <td>SW · Buea</td>
-          <td>Sunrise Farmers</td>
-          <td>1 hour ago</td>
-          <td><span class="status progress">In Progress</span></td>
-          <td>
-            <button class="action-btn">View</button>
-          </td>
-        </tr>
-
-        <tr>
-          <td>🐛 Pest</td>
-          <td><span class="badge medium">Medium</span></td>
-          <td>West · Bafoussam</td>
-          <td>Unity Coop</td>
-          <td>Yesterday</td>
-          <td><span class="status resolved">Resolved</span></td>
-          <td>
-            <button class="action-btn">View</button>
-          </td>
-        </tr>
+        @if (!loading() && filteredAlerts().length === 0) {
+          <tr>
+            <td colspan="7" style="padding: 1rem; color:#6b7280;">No alerts found.</td>
+          </tr>
+        }
       </tbody>
     </table>
   </div>
+
+  <!-- Create Alert Modal -->
+  @if (showCreateModal()) {
+    <div class="modal-backdrop" (click)="closeCreateModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Create Alert</h3>
+          <button class="close-btn" (click)="closeCreateModal()">×</button>
+        </div>
+
+        <form class="form" [formGroup]="createForm">
+          <label>Type *</label>
+          <select formControlName="type">
+            @for (t of typeOptions; track t) {
+              <option [value]="t">{{ t }}</option>
+            }
+          </select>
+
+          <label>Severity *</label>
+          <select formControlName="severity">
+            @for (s of severityOptions; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+
+          <label>Region *</label>
+          <input type="text" formControlName="region" />
+
+          <label>Location *</label>
+          <input type="text" formControlName="location" />
+
+          <label>Cooperative Name *</label>
+          <input type="text" formControlName="cooperativeName" />
+
+          <label>Message *</label>
+          <textarea rows="4" formControlName="message"></textarea>
+
+          <button type="button" class="submit-btn" [disabled]="saving()" (click)="createAlert()">
+            {{ saving() ? 'Creating...' : 'Create' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- View Alert Modal -->
+  @if (showViewModal() && selectedAlert()) {
+    <div class="modal-backdrop" (click)="closeView()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Alert Details</h3>
+          <button class="close-btn" (click)="closeView()">×</button>
+        </div>
+
+        <div class="details">
+          <p><strong>Type:</strong> {{ typeLabel(selectedAlert()!.type) }}</p>
+          <p><strong>Severity:</strong> {{ selectedAlert()!.severity }}</p>
+          <p><strong>Status:</strong> {{ selectedAlert()!.status }}</p>
+          <p><strong>Region:</strong> {{ selectedAlert()!.region }}</p>
+          <p><strong>Location:</strong> {{ selectedAlert()!.location }}</p>
+          <p><strong>Cooperative:</strong> {{ selectedAlert()!.cooperativeName }}</p>
+          <p><strong>Time:</strong> {{ formatTime(selectedAlert()!.createdAt) }}</p>
+          <p><strong>Message:</strong> {{ selectedAlert()!.message }}</p>
+        </div>
+
+        <div class="modal-actions">
+          @if (selectedAlert()!.status !== 'IN_PROGRESS' && selectedAlert()!.status !== 'RESOLVED') {
+            <button class="action-btn secondary" (click)="updateStatus(selectedAlert()!, 'IN_PROGRESS')">Mark In Progress</button>
+          }
+          @if (selectedAlert()!.status !== 'RESOLVED') {
+            <button class="action-btn secondary" (click)="updateStatus(selectedAlert()!, 'RESOLVED')">Resolve</button>
+          }
+        </div>
+      </div>
+    </div>
+  }
 
 </div>

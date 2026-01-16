@@ -1,161 +1,245 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms'; // <-- Import FormsModule
-
-
-interface AudioFile {
-  language: string;
-  url: string;
-}
-
-interface Announcement {
-  id: number;
-  title: string;
-  pdfUrl: string;
-  audioFiles: AudioFile[];
-}
+import { Component, OnInit, inject } from '@angular/core';
+import {
+  AbstractControl,
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { forkJoin, map, of, switchMap } from 'rxjs';
+import { AuthService } from '../../../core/services/auth';
+import { AnnouncementApiService } from '../../../core/services/announcement-api';
+import {
+  AnnouncementDto,
+  LanguageDto,
+  TargetAudience,
+} from '../../../core/interfaces/announcement-api';
 
 @Component({
   selector: 'app-announcements',
-  imports: [CommonModule, FormsModule], // <-- Add FormsModule here
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './announcements.html',
   styleUrl: './announcements.scss',
 })
-export class Announcements {
-   announcements: Announcement[] = []; // List of announcements
+export class Announcements implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly api = inject(AnnouncementApiService);
+  private readonly auth = inject(AuthService);
+
+  announcements: AnnouncementDto[] = [];
+  languages: LanguageDto[] = [];
+
+  loading = false;
+  saving = false;
+  errorMessage: string | null = null;
+
   showUploadModal = false;
 
-  newAnnouncement: {
-    title: string;
-    pdfFile: File | null;
-    audioFiles: File[];
-  } = {
-    title: '',
-    pdfFile: null,
-    audioFiles: [],
-  };
+  readonly targetAudiences: TargetAudience[] = ['ALL', 'FARMERS', 'COOPERATIVES'];
 
-  // Audio recording
-  mediaRecorder: any;
-  audioChunks: any[] = [];
+  form = this.fb.group({
+    title: ['', [Validators.required, Validators.maxLength(255)]],
+    message: ['', [Validators.required]],
+    targetAudience: ['ALL' as TargetAudience, [Validators.required]],
+    createdByAgentId: [null as number | null, [Validators.required]],
+    pdfFile: [null as File | null],
+    translations: this.fb.array<FormGroup>([]),
+  });
 
-  // Open upload modal
-  openUploadModal() {
+  ngOnInit(): void {
+    const currentUser = this.auth.getCurrentUser();
+    const agentId = currentUser?.id ? Number(currentUser.id) : null;
+    if (agentId && !Number.isNaN(agentId)) {
+      this.form.patchValue({ createdByAgentId: agentId });
+    }
+
+    this.loadPageData();
+  }
+
+  get translations(): FormArray<FormGroup> {
+    return this.form.get('translations') as FormArray<FormGroup>;
+  }
+
+  translationAt(index: number): AbstractControl {
+    return this.translations.at(index);
+  }
+
+  private loadPageData(): void {
+    this.loading = true;
+    this.errorMessage = null;
+
+    forkJoin({
+      announcements: this.api.getAnnouncements(),
+      languages: this.api.getLanguages(true),
+    }).subscribe({
+      next: ({ announcements, languages }) => {
+        this.announcements = announcements;
+        this.languages = languages;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.errorMessage = 'Failed to load announcements. Please try again.';
+        this.loading = false;
+      },
+    });
+  }
+
+  openUploadModal(): void {
     this.showUploadModal = true;
+    this.errorMessage = null;
+    if (this.translations.length === 0) {
+      this.addTranslation();
+    }
   }
 
-  // Close upload modal
-  closeUploadModal() {
+  closeUploadModal(): void {
     this.showUploadModal = false;
-    this.resetNewAnnouncement();
+    this.resetForm();
   }
 
-  // Reset form
-  resetNewAnnouncement() {
-    this.newAnnouncement = {
+  resetForm(): void {
+    const createdByAgentId = this.form.value.createdByAgentId;
+    this.form.reset({
       title: '',
+      message: '',
+      targetAudience: 'ALL',
+      createdByAgentId: createdByAgentId ?? null,
       pdfFile: null,
-      audioFiles: [],
-    };
-    this.audioChunks = [];
+      translations: [],
+    });
+    this.translations.clear();
   }
 
-  // Handle PDF upload
-  handlePdfUpload(event: any) {
-    const file = event.target.files[0];
-    if (file && file.type === 'application/pdf') {
-      this.newAnnouncement.pdfFile = file;
-    } else {
-      alert('Please select a valid PDF file.');
+  addTranslation(): void {
+    this.translations.push(
+      this.fb.group({
+        languageCode: ['', [Validators.required]],
+        translatedTitle: ['', [Validators.required]],
+        translatedContent: ['', [Validators.required]],
+        audioFile: [null as File | null],
+      })
+    );
+  }
+
+  removeTranslation(index: number): void {
+    this.translations.removeAt(index);
+  }
+
+  handlePdfUpload(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (!file) {
+      this.form.patchValue({ pdfFile: null });
+      return;
     }
-  }
-
-  // Handle audio file upload
-  handleAudioUpload(event: any) {
-    const files: FileList = event.target.files;
-    for (let i = 0; i < files.length; i++) {
-      const file = files.item(i);
-      if (file?.type.startsWith('audio/')) {
-        this.newAnnouncement.audioFiles.push(file);
-      }
+    if (file.type !== 'application/pdf') {
+      this.errorMessage = 'Please select a valid PDF file.';
+      this.form.patchValue({ pdfFile: null });
+      input.value = '';
+      return;
     }
+    this.form.patchValue({ pdfFile: file });
   }
 
-  // Start recording audio
-  async startRecording() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.mediaRecorder = new MediaRecorder(stream);
-      this.audioChunks = [];
-
-      this.mediaRecorder.ondataavailable = (event: any) => {
-        if (event.data.size > 0) {
-          this.audioChunks.push(event.data);
-        }
-      };
-
-      this.mediaRecorder.onstop = () => {
-        const blob = new Blob(this.audioChunks, { type: 'audio/mp3' });
-        const url = URL.createObjectURL(blob);
-        this.newAnnouncement.audioFiles.push(new File([blob], 'recorded-audio.mp3', { type: 'audio/mp3' }));
-      };
-
-      this.mediaRecorder.start();
-      alert('Recording started. Click again to stop.');
-
-      // Stop after 30 seconds automatically if user forgets
-      setTimeout(() => {
-        if (this.mediaRecorder.state !== 'inactive') {
-          this.stopRecording();
-        }
-      }, 30000);
-    } catch (err) {
-      console.error(err);
-      alert('Microphone access denied or unavailable.');
+  handleTranslationAudioUpload(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (!file) {
+      this.translations.at(index).patchValue({ audioFile: null });
+      return;
     }
-  }
-
-  // Stop recording audio
-  stopRecording() {
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-      this.mediaRecorder.stop();
-      alert('Recording stopped.');
+    if (!file.type.startsWith('audio/')) {
+      this.errorMessage = 'Please select a valid audio file.';
+      this.translations.at(index).patchValue({ audioFile: null });
+      input.value = '';
+      return;
     }
+    this.translations.at(index).patchValue({ audioFile: file });
   }
 
-  // Upload announcement
-  uploadAnnouncement() {
-    if (!this.newAnnouncement.title || !this.newAnnouncement.pdfFile) {
-      alert('Please provide a title and PDF file.');
+  createAnnouncement(): void {
+    this.errorMessage = null;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.errorMessage = 'Please fill in all required fields.';
       return;
     }
 
-    // Convert audio files to AudioFile objects
-    const audioFiles: AudioFile[] = this.newAnnouncement.audioFiles.map((file, index) => {
-      return { language: `Audio ${index + 1}`, url: URL.createObjectURL(file) };
-    });
+    const pdfFile = this.form.value.pdfFile ?? null;
 
-    // Add to announcements list
-    const newAnn: Announcement = {
-      id: this.announcements.length + 1,
-      title: this.newAnnouncement.title,
-      pdfUrl: URL.createObjectURL(this.newAnnouncement.pdfFile),
-      audioFiles: audioFiles,
+    const translations = this.translations.controls
+      .map(ctrl => ctrl.value)
+      .filter(t => !!t.languageCode && !!t.translatedTitle && !!t.translatedContent)
+      .map(t => ({
+        languageCode: String(t.languageCode),
+        translatedTitle: String(t.translatedTitle),
+        translatedContent: String(t.translatedContent),
+      }));
+
+    const payload = {
+      title: String(this.form.value.title),
+      message: String(this.form.value.message),
+      targetAudience: this.form.value.targetAudience as TargetAudience,
+      createdByAgentId: Number(this.form.value.createdByAgentId),
+      translations: translations.length > 0 ? translations : undefined,
     };
 
-    this.announcements.push(newAnn);
-    this.closeUploadModal();
+    this.saving = true;
+
+    this.api.createAnnouncement(payload).pipe(
+      switchMap((created) => {
+        const uploads = [] as Array<ReturnType<typeof of>>;
+
+        const uploadCalls = [] as Array<ReturnType<typeof this.api.uploadFileForAnnouncement>>;
+
+        if (pdfFile) {
+          uploadCalls.push(this.api.uploadFileForAnnouncement(created.id, pdfFile));
+        }
+
+        const createdTranslations = created.translations ?? [];
+        const translationForms = this.translations.controls.map(c => c.value);
+
+        for (const createdTr of createdTranslations) {
+          const match = translationForms.find(tf => tf.languageCode === createdTr.languageCode);
+          const audioFile = (match?.audioFile as File | null | undefined) ?? null;
+          if (audioFile) {
+            uploadCalls.push(this.api.uploadFileForTranslation(createdTr.id, audioFile));
+          }
+        }
+
+        if (uploadCalls.length === 0) {
+          return of(created);
+        }
+
+        return forkJoin(uploadCalls).pipe(map(() => created));
+      })
+    ).subscribe({
+      next: () => {
+        this.saving = false;
+        this.closeUploadModal();
+        this.loadPageData();
+      },
+      error: (err) => {
+        console.error(err);
+        this.saving = false;
+        this.errorMessage = 'Failed to create announcement. Please check your inputs and try again.';
+      },
+    });
   }
 
-  // Edit announcement (simplified)
-  editAnnouncement(ann: Announcement) {
-    alert(`Edit functionality for "${ann.title}" not implemented yet.`);
-  }
-
-  // Delete announcement
-  deleteAnnouncement(ann: Announcement) {
-    if (confirm(`Are you sure you want to delete "${ann.title}"?`)) {
-      this.announcements = this.announcements.filter(a => a.id !== ann.id);
+  deleteAnnouncement(ann: AnnouncementDto): void {
+    if (!confirm(`Are you sure you want to delete "${ann.title}"?`)) {
+      return;
     }
+    this.api.deleteAnnouncement(ann.id).subscribe({
+      next: () => this.loadPageData(),
+      error: (err) => {
+        console.error(err);
+        this.errorMessage = 'Failed to delete announcement.';
+      },
+    });
   }
 }

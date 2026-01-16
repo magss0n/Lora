@@ -4,13 +4,16 @@
     <button class="upload-btn" (click)="openUploadModal()">+ New Announcement</button>
   </div>
 
+  <p *ngIf="loading">Loading announcements...</p>
+  <p *ngIf="errorMessage" style="color:#c0392b; font-weight:600;">{{ errorMessage }}</p>
+
   <table class="announcements-table">
     <thead>
       <tr>
         <th>ID</th>
         <th>Title</th>
         <th>PDF</th>
-        <th>Audio Translations</th>
+        <th>Translations (Audio)</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -19,18 +22,33 @@
         <td>{{ ann.id }}</td>
         <td>{{ ann.title }}</td>
         <td>
-          <a [href]="ann.pdfUrl" target="_blank">View PDF</a>
+          <ng-container *ngIf="ann.attachments?.length; else noPdf">
+            <a
+              *ngFor="let file of ann.attachments"
+              [href]="file.fileUrl"
+              target="_blank"
+              rel="noopener"
+            >
+              {{ file.fileName || 'View File' }}
+            </a>
+          </ng-container>
+          <ng-template #noPdf>
+            <span>-</span>
+          </ng-template>
         </td>
         <td>
           <ul>
-            <li *ngFor="let audio of ann.audioFiles">
-              {{ audio.language }} 
-              <audio controls [src]="audio.url"></audio>
+            <li *ngFor="let tr of ann.translations">
+              <span>{{ tr.languageCode }}</span>
+              <audio
+                *ngIf="tr.audioFile?.fileUrl"
+                controls
+                [src]="tr.audioFile?.fileUrl"
+              ></audio>
             </li>
           </ul>
         </td>
         <td class="actions">
-          <button class="action edit" (click)="editAnnouncement(ann)">Edit</button>
           <button class="action delete" (click)="deleteAnnouncement(ann)">Delete</button>
         </td>
       </tr>
@@ -41,24 +59,64 @@
   <div class="modal-backdrop" *ngIf="showUploadModal" (click)="closeUploadModal()">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>Upload Announcement</h3>
+        <h3>New Announcement</h3>
         <button class="close-btn" (click)="closeUploadModal()">×</button>
       </div>
 
-      <form class="form">
-        <label>Title</label>
-        <input [(ngModel)]="newAnnouncement.title" />
+      <form class="form" [formGroup]="form">
+        <label>Title *</label>
+        <input type="text" formControlName="title" />
 
-        <label>PDF File</label>
-        <input type="file" (change)="handlePdfUpload($event)" />
+        <label>Message *</label>
+        <textarea formControlName="message" rows="4"></textarea>
 
-        <label>Audio Translation</label>
-        <input type="file" accept="audio/*" multiple (change)="handleAudioUpload($event)" />
-        <p>Or record using microphone:</p>
-        <button type="button" (click)="startRecording()">🎤 Record Audio</button>
+        <label>Target Audience *</label>
+        <select formControlName="targetAudience">
+          <option *ngFor="let a of targetAudiences" [value]="a">{{ a }}</option>
+        </select>
 
-        <button type="button" class="submit-btn" (click)="uploadAnnouncement()">
-          Upload
+        <label>Agent ID (createdByAgentId) *</label>
+        <input type="text" inputmode="numeric" formControlName="createdByAgentId" />
+
+        <label>PDF Attachment (optional)</label>
+        <input type="file" accept="application/pdf" (change)="handlePdfUpload($event)" />
+
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label style="margin:0;">Translations</label>
+            <button type="button" (click)="addTranslation()">+ Add translation</button>
+          </div>
+
+          <div formArrayName="translations" style="margin-top:0.75rem; display:flex; flex-direction:column; gap:1rem;">
+            <div
+              *ngFor="let trCtrl of translations.controls; let i = index"
+              [formGroupName]="i"
+              style="border:1px solid #e6e9ee; border-radius:10px; padding:0.75rem;"
+            >
+              <label>Language *</label>
+              <select formControlName="languageCode">
+                <option value="" disabled>Select a language</option>
+                <option *ngFor="let l of languages" [value]="l.code">{{ l.name }} ({{ l.code }})</option>
+              </select>
+
+              <label>Translated Title *</label>
+              <input type="text" formControlName="translatedTitle" />
+
+              <label>Translated Content *</label>
+              <textarea formControlName="translatedContent" rows="3"></textarea>
+
+              <label>Audio file (optional)</label>
+              <input type="file" accept="audio/*" (change)="handleTranslationAudioUpload(i, $event)" />
+
+              <button type="button" class="action delete" (click)="removeTranslation(i)">
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="submit-btn" [disabled]="saving" (click)="createAnnouncement()">
+          {{ saving ? 'Creating...' : 'Create' }}
         </button>
       </form>
     </div>

@@ -24,7 +24,7 @@ export const routes: Routes = [
   {
     path: 'government',
     loadComponent: () => import('./features/government/dashboard-layout/dashboard-layout').then(m => m.DashboardLayoutComponent),
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
     children: [
       {
         path: '',
@@ -53,7 +53,7 @@ export const routes: Routes = [
   {
     path: 'cooperative',
     component: MainLayoutComponent,
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
     children: [
       {
         path: '',

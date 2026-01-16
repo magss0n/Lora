@@ -16,19 +16,19 @@
   <div class="metrics">
     <div class="metric-card">
       <h4>Total Alerts (YTD)</h4>
-      <span>320</span>
+      <span>{{ dashboardMetrics.totalAlertsYtd | number }}</span>
     </div>
     <div class="metric-card">
       <h4>Critical Alerts</h4>
-      <span>78</span>
+      <span>{{ dashboardMetrics.criticalAlerts | number }}</span>
     </div>
     <div class="metric-card">
       <h4>Registered Cooperatives</h4>
-      <span>540</span>
+      <span>{{ dashboardMetrics.registeredCooperatives | number }}</span>
     </div>
     <div class="metric-card">
       <h4>Active Farmers</h4>
-      <span>12,400</span>
+      <span>{{ dashboardMetrics.activeFarmers | number }}</span>
     </div>
   </div>
 
@@ -47,7 +47,7 @@
   <div class="charts-row">
     <div class="card">
       <div class="card-header">
-        <h4>Production Report</h4>
+        <h4>Announcements Report</h4>
         <button>Export PDF</button>
       </div>
       <canvas #productionChart></canvas>
