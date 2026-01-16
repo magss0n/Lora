@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "Lora_Web": {
+    "lora": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -35,13 +35,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "2MB",
+                  "maximumError": "4MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "32kB",
+                  "maximumError": "64kB"
                 }
               ],
               "outputHashing": "all"
@@ -58,10 +58,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "Lora_Web:build:production"
+              "buildTarget": "lora:build:production"
             },
             "development": {
-              "buildTarget": "Lora_Web:build:development"
+              "buildTarget": "lora:build:development"
             }
           },
           "defaultConfiguration": "development"

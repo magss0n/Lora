@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { MainLayoutComponent } from './features/cooperative/layout/main-layout/main-layout';
+import { AuthGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
   {
@@ -23,6 +24,7 @@ export const routes: Routes = [
   {
     path: 'government',
     loadComponent: () => import('./features/government/dashboard-layout/dashboard-layout').then(m => m.DashboardLayoutComponent),
+    canActivate: [AuthGuard],
     children: [
       {
         path: '',
@@ -51,11 +53,11 @@ export const routes: Routes = [
   {
     path: 'cooperative',
     component: MainLayoutComponent,
+    canActivate: [AuthGuard],
     children: [
       {
         path: '',
         loadChildren: () => import('./features/cooperative/dashboard/dashboard-module').then(m => m.DashboardModule)
-     
       },
      {
         path: 'farmer-management',

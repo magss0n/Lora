@@ -3,18 +3,25 @@
     <img src="../../../../assets/images/logo.png" alt="logo" srcset="" class="logo">
     <h2>Welcome Back</h2>
 
-    <form>
+    <form [formGroup]="loginForm" class="login-form" (ngSubmit)="onLogin($event)">
       <div class="form-group">
-        <label>Username</label>
-        <input type="text" placeholder="Enter your username" />
+        <label>Email</label>
+        <input type="email" placeholder="Enter your email" formControlName="email" 
+        (focus)="emailFocused=true" (blur)="emailFocused=false"/>
       </div>
 
       <div class="form-group">
         <label>Password</label>
-        <input type="password" placeholder="Enter your password" />
+        <input type="password"  placeholder="Enter your password" formControlName="password" minlength="6"
+          (focus)="passFocused=true" (blur)="passFocused=false"/>
       </div>
 
-      <button type="submit" class="login-btn" (click)="login($event)">Login</button>
+      <button type="submit" class="login-btn" [disabled]="loginForm.invalid" (click)="print()">
+            {{ loading ? 'Signing in...' : 'Log In' }}
+            @if (loading) {
+            <span class="spinner"></span>
+          }
+      </button>
     </form>
 
     <p class="contact-text">
